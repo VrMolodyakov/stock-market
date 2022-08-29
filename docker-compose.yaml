@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+    postgres:
+        image: postgres:12
+        restart: always
+        ports:
+            - '5432:5432'    
+        volumes:
+            - ./db_data:/var/lib/postgresql/data
+            - ./scripts/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+        env_file:
+            - ./config/.env    
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-q", "-d", "devdb", "-U","postgres" ]
+            timeout: 45s
+            interval: 10s
+            retries: 10
+    redis:
+        image: redis:6.2
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock      
+        ports:
+          - 6379:6379 
+    app:
+        build: ./
+        ports:
+          - 8080:8080
+        depends_on:
+          - postgres
+          - redis
+
+
