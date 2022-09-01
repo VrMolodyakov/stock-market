@@ -26,9 +26,9 @@ func New(logger logging.Logger, client DbClient) *userStorage {
 }
 
 func (u *userStorage) Insert(ctx context.Context, userName string, password string) (int, error) {
-	sql := `INSERT INTO users(user_name,user_password)
+	sql := `INSERT INTO users(u_name,u_password)
 			SELECT $1,$2
-			WHERE NOT EXISTS (SELECT user_id FROM users WHERE user_name =$3) RETURNING user_id`
+			WHERE NOT EXISTS (SELECT u_id FROM users WHERE u_name =$3) RETURNING u_id`
 	var id int
 	err := u.client.QueryRow(ctx, sql, userName, password, userName).Scan(&id)
 	if err != nil {
@@ -45,7 +45,7 @@ func (u *userStorage) Insert(ctx context.Context, userName string, password stri
 }
 
 func (u *userStorage) Find(ctx context.Context, title string) (int, error) {
-	sql := `SELECT vote_id FROM vote WHERE vote_title = $1`
+	sql := `SELECT u_id FROM users WHERE u_name = $1`
 	var id int
 	err := u.client.QueryRow(ctx, sql, title).Scan(&id)
 	if err != nil {
