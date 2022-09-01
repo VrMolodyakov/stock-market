@@ -11,7 +11,6 @@ const (
 	Invalid                     // Invalid operation for this type of item.
 	Exist                       // Item already exists.
 	NotExist                    // Item does not exist.
-	Private                     // Information withheld.
 	Internal                    // Internal error or inconsistency.
 	Database                    // Error from database.
 	Validation                  // Input validation error.
@@ -53,4 +52,30 @@ func New(args ...interface{}) error {
 	}
 	return e
 
+}
+
+func (k Kind) String() string {
+	switch k {
+	case Other:
+		return "other_error"
+	case Invalid:
+		return "invalid_operation"
+	case Exist:
+		return "item_already_exists"
+	case NotExist:
+		return "item_does_not_exist"
+	case Internal:
+		return "internal_error"
+	case Database:
+		return "database_error"
+	case Validation:
+		return "input_validation_error"
+	case InvalidRequest:
+		return "invalid_request_error"
+	case Unauthenticated:
+		return "unauthenticated_request"
+	case Unauthorized:
+		return "unauthorized_request"
+	}
+	return "unknown_error_kind"
 }
