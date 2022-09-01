@@ -11,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	Create(ctx context.Context, username string, password string) (int, error)
+	Create(ctx context.Context, username string, password string) (entity.User, error)
 	Get(ctx context.Context, username string) (entity.User, error)
 }
 
@@ -25,13 +25,18 @@ func NewAuthController(userService UserService, logger *logging.Logger) *authCon
 }
 
 func (a *authController) SignUpUser(ctx *gin.Context) {
-	var user UserDto
+	var dto UserDto
 
-	err := ctx.ShouldBindJSON(&user)
+	err := ctx.ShouldBindJSON(&dto)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, err)
 		return
 	}
-	hashedPassword, err := hashing.HashPassword(user.Password)
+	hashedPassword, err := hashing.HashPassword(dto.Password)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, err)
+		return
+	}
+	user, err := a.userService.Create(ctx, dto.Username, hashedPassword)
 
 }

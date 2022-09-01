@@ -26,29 +26,29 @@ func New(logger logging.Logger, client DbClient) *userStorage {
 	return &userStorage{logger: logger, client: client}
 }
 
-func (u *userStorage) Insert(ctx context.Context, username string, password string) (int, error) {
+func (u *userStorage) Insert(ctx context.Context, username string, password string) (entity.User, error) {
 	sql := `INSERT INTO users(u_name,u_password)
 			SELECT $1,$2
-			WHERE NOT EXISTS (SELECT u_id FROM users WHERE u_name =$3) RETURNING u_id`
-	var id int
-	err := u.client.QueryRow(ctx, sql, username, password, username).Scan(&id)
+			WHERE NOT EXISTS (SELECT u_id FROM users WHERE u_name =$3) RETURNING u_id,u_name,u_password`
+	var user entity.User
+	err := u.client.QueryRow(ctx, sql, username, password, username).Scan(&user.Id, &user.Username, &user.Password)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return -1, errs.New(
+			return entity.User{}, errs.New(
 				errs.Validation,
 				errs.Code("user name already exists"),
 				errs.Parameter("username"),
 				err)
 		}
-		return -1, err
+		return entity.User{}, err
 	}
-	return id, nil
+	return user, nil
 }
 
 func (u *userStorage) Find(ctx context.Context, username string) (entity.User, error) {
 	sql := `SELECT u_id FROM users WHERE u_name = $1`
 	var user entity.User
-	err := u.client.QueryRow(ctx, sql, username).Scan(&user.Id, &user.UserName, &user.Password)
+	err := u.client.QueryRow(ctx, sql, username).Scan(&user.Id, &user.Username, &user.Password)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.New(

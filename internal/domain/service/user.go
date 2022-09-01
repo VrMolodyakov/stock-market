@@ -9,7 +9,7 @@ import (
 )
 
 type UserStorage interface {
-	Insert(ctx context.Context, userName string, password string) (int, error)
+	Insert(ctx context.Context, username string, password string) (entity.User, error)
 	Find(ctx context.Context, username string) (entity.User, error)
 }
 
@@ -22,12 +22,12 @@ func NewUserStorage(logger *logging.Logger, storage UserStorage) *userService {
 	return &userService{logger: logger, storage: storage}
 }
 
-func (u *userService) Create(ctx context.Context, username string, password string) (int, error) {
+func (u *userService) Create(ctx context.Context, username string, password string) (entity.User, error) {
 	if username == "" {
-		return -1, errs.New(errs.Validation, errs.Parameter("username"), errs.Code("empty username"))
+		return entity.User{}, errs.New(errs.Validation, errs.Parameter("username"), errs.Code("empty username"))
 	}
 	if password == "" {
-		return -1, errs.New(errs.Validation, errs.Parameter("password"), errs.Code("empty password"))
+		return entity.User{}, errs.New(errs.Validation, errs.Parameter("password"), errs.Code("empty password"))
 	}
 	u.logger.Debug("create user with login = %v , password = %v", username, password)
 	return u.storage.Insert(ctx, username, password)
