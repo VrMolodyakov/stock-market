@@ -17,6 +17,7 @@ type Config struct {
 	LogLvl     string  `yaml : "loglvl"`
 	PostgreSql Postgre `yaml : "postgresql"`
 	Redis      Redis   `yaml : "redis"`
+	Token      Token   `yaml : "token"`
 }
 
 type Redis struct {
@@ -33,6 +34,15 @@ type Postgre struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	PoolSize string `yaml:"poolsize"`
+}
+
+type Token struct {
+	AccessPublic   string `yaml:"access_public"`
+	AccessPrivate  string `yaml:"access_private"`
+	RefreshPublic  string `yaml:"refresh_public"`
+	RefreshPrivate string `yaml:"refresh_private"`
+	AccessTtl      int    `yaml:"access_ttl"`
+	RefreshTtl     int    `yaml:"refresh_ttl"`
 }
 
 var instance *Config

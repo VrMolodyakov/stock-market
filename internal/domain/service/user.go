@@ -37,6 +37,6 @@ func (u *userService) Get(ctx context.Context, username string) (entity.User, er
 	if username == "" {
 		return entity.User{}, errs.New(errs.Validation, errs.Parameter("username"), errs.Code("empty username"))
 	}
-	u.logger.Debug("try to get user with username = %v", username)
+	u.logger.Debugf("try to get user with username = %v", username)
 	return u.storage.Find(ctx, username)
 }

@@ -22,7 +22,7 @@ type ServiceError struct {
 
 func HTTPErrorResponse(ctx *gin.Context, logger *logging.Logger, err error) {
 	var e *Error
-	if errors.As(err, e) {
+	if errors.As(err, &e) {
 		switch e.Kind {
 		case Unauthenticated:
 			unauthenticatedErrorResponse(ctx, logger, e)

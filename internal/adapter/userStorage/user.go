@@ -3,6 +3,7 @@ package userstorage
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/VrMolodyakov/jwt-auth/internal/domain/entity"
 	"github.com/VrMolodyakov/jwt-auth/internal/errs"
@@ -18,20 +19,22 @@ type DbClient interface {
 }
 
 type userStorage struct {
-	logger logging.Logger
+	logger *logging.Logger
 	client DbClient
 }
 
-func New(logger logging.Logger, client DbClient) *userStorage {
+func New(logger *logging.Logger, client DbClient) *userStorage {
 	return &userStorage{logger: logger, client: client}
 }
 
 func (u *userStorage) Insert(ctx context.Context, username string, password string) (entity.User, error) {
-	sql := `INSERT INTO users(u_name,u_password)
-			SELECT $1,$2
-			WHERE NOT EXISTS (SELECT u_id FROM users WHERE u_name =$3) RETURNING u_id,u_name,u_password`
+	sql := `INSERT INTO users(u_name,u_password,create_at)
+			SELECT $1,$2,$3
+			WHERE NOT EXISTS (SELECT u_id FROM users WHERE u_name =$4) RETURNING u_id,u_name,u_password,create_at`
 	var user entity.User
-	err := u.client.QueryRow(ctx, sql, username, password, username).Scan(&user.Id, &user.Username, &user.Password)
+	datetime := time.Now()
+	dt := datetime.Format(time.RFC3339)
+	err := u.client.QueryRow(ctx, sql, username, password, dt, username).Scan(&user.Id, &user.Username, &user.Password, &user.CreateAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.New(
@@ -46,9 +49,9 @@ func (u *userStorage) Insert(ctx context.Context, username string, password stri
 }
 
 func (u *userStorage) Find(ctx context.Context, username string) (entity.User, error) {
-	sql := `SELECT u_id FROM users WHERE u_name = $1`
+	sql := `SELECT u_id,u_name,u_password,create_at FROM users WHERE u_name = $1`
 	var user entity.User
-	err := u.client.QueryRow(ctx, sql, username).Scan(&user.Id, &user.Username, &user.Password)
+	err := u.client.QueryRow(ctx, sql, username).Scan(&user.Id, &user.Username, &user.Password, &user.CreateAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.New(

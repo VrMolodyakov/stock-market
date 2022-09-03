@@ -1,6 +1,7 @@
 package token
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"time"
 
@@ -8,21 +9,38 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+type TokenPair struct {
+	PrivateKey []byte
+	PublicKey  []byte
+}
+
 type tokenHandler struct {
-	logger     *logging.Logger
-	privateKey []byte
-	publicKey  []byte
+	logger      *logging.Logger
+	accessPair  TokenPair
+	refreshPair TokenPair
 }
 
-func NewTokenHandler(logger *logging.Logger) *tokenHandler {
-	return &tokenHandler{logger: logger}
+func NewTokenHandler(logger *logging.Logger, accessPair TokenPair, refreshPair TokenPair) *tokenHandler {
+	return &tokenHandler{logger: logger, accessPair: accessPair, refreshPair: refreshPair}
 }
 
-func (t *tokenHandler) CreateToken(ttl time.Duration, payload interface{}) (string, error) {
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(t.privateKey)
+func (t *tokenHandler) CreateAccessToken(ttl time.Duration, payload interface{}) (string, error) {
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(t.accessPair.PrivateKey)
 	if err != nil {
 		return "", fmt.Errorf("couldn't parse private key: %w ", err)
 	}
+	return create(ttl, payload, key)
+}
+
+func (t *tokenHandler) CreateRefreshToken(ttl time.Duration, payload interface{}) (string, error) {
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(t.refreshPair.PrivateKey)
+	if err != nil {
+		return "", fmt.Errorf("couldn't parse private key: %w ", err)
+	}
+	return create(ttl, payload, key)
+}
+
+func create(ttl time.Duration, payload interface{}, key *rsa.PrivateKey) (string, error) {
 	now := time.Now().UTC()
 	claims := make(jwt.MapClaims)
 	claims["sub"] = payload
@@ -37,11 +55,24 @@ func (t *tokenHandler) CreateToken(ttl time.Duration, payload interface{}) (stri
 	return token, nil
 }
 
-func (t *tokenHandler) ValidateToken(token string) (interface{}, error) {
-	key, err := jwt.ParseRSAPublicKeyFromPEM(t.publicKey)
+func (t *tokenHandler) ValidateAccessToken(token string) (interface{}, error) {
+	key, err := jwt.ParseRSAPublicKeyFromPEM(t.accessPair.PublicKey)
 	if err != nil {
 		return "", fmt.Errorf("couldn't parse public key: %w ", err)
 	}
+	return validate(token, key)
+}
+
+func (t *tokenHandler) ValidateRefreshToken(token string) (interface{}, error) {
+	key, err := jwt.ParseRSAPublicKeyFromPEM(t.refreshPair.PublicKey)
+	if err != nil {
+		return "", fmt.Errorf("couldn't parse public key: %w ", err)
+	}
+	return validate(token, key)
+
+}
+
+func validate(token string, key *rsa.PublicKey) (interface{}, error) {
 	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, signed := t.Method.(*jwt.SigningMethodRSA); !signed {
 			return nil, fmt.Errorf("unexpected method - %v", t.Header["alg"])

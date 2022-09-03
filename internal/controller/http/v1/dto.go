@@ -1,6 +1,23 @@
 package v1
 
-type UserDto struct {
-	Username string
-	Password string
+import (
+	"time"
+
+	"github.com/VrMolodyakov/jwt-auth/internal/domain/entity"
+)
+
+type UserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type UserResponse struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	CreateAt string `json:"create_at"`
+}
+
+func ResponseFromEntity(user entity.User) UserResponse {
+	dt := user.CreateAt.Format(time.RFC3339)
+	return UserResponse{Username: user.Username, Password: user.Password, CreateAt: dt}
 }
