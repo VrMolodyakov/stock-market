@@ -25,7 +25,10 @@ func HTTPErrorResponse(ctx *gin.Context, logger *logging.Logger, err error) {
 	if errors.As(err, &e) {
 		switch e.Kind {
 		case Unauthenticated:
-			unauthenticatedErrorResponse(ctx, logger, e)
+			badRequesteResponse(ctx, logger, e)
+			return
+		case Validation:
+			badRequesteResponse(ctx, logger, e)
 			return
 		case Unauthorized:
 			unauthorizedErrorResponse(ctx, logger, e)
@@ -38,7 +41,7 @@ func HTTPErrorResponse(ctx *gin.Context, logger *logging.Logger, err error) {
 	unknownErrorResponse(ctx, logger, e)
 }
 
-func unauthenticatedErrorResponse(c *gin.Context, logger *logging.Logger, err *Error) {
+func badRequesteResponse(c *gin.Context, logger *logging.Logger, err *Error) {
 	logger.Errorf("http status code %v\n error = %v", http.StatusUnauthorized, err)
 	c.JSON(http.StatusBadRequest, err.Error())
 }

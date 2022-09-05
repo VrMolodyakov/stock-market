@@ -48,31 +48,31 @@ func create(ttl time.Duration, payload interface{}, key *rsa.PrivateKey) (string
 	claims["iat"] = now.Unix()
 	claims["nbf"] = now.Unix()
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodES512, claims).SignedString(key)
+	token, err := jwt.NewWithClaims(jwt.SigningMethodRS512, claims).SignedString(key)
 	if err != nil {
 		return "", fmt.Errorf("couldn't sign key due to %w", err)
 	}
 	return token, nil
 }
 
-func (t *tokenHandler) ValidateAccessToken(token string) (interface{}, error) {
+func (t *tokenHandler) ValidateAccessToken(token string) error {
 	key, err := jwt.ParseRSAPublicKeyFromPEM(t.accessPair.PublicKey)
 	if err != nil {
-		return "", fmt.Errorf("couldn't parse public key: %w ", err)
+		return fmt.Errorf("couldn't parse public key: %w ", err)
 	}
 	return validate(token, key)
 }
 
-func (t *tokenHandler) ValidateRefreshToken(token string) (interface{}, error) {
+func (t *tokenHandler) ValidateRefreshToken(token string) error {
 	key, err := jwt.ParseRSAPublicKeyFromPEM(t.refreshPair.PublicKey)
 	if err != nil {
-		return "", fmt.Errorf("couldn't parse public key: %w ", err)
+		return fmt.Errorf("couldn't parse public key: %w ", err)
 	}
 	return validate(token, key)
 
 }
 
-func validate(token string, key *rsa.PublicKey) (interface{}, error) {
+func validate(token string, key *rsa.PublicKey) error {
 	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, signed := t.Method.(*jwt.SigningMethodRSA); !signed {
 			return nil, fmt.Errorf("unexpected method - %v", t.Header["alg"])
@@ -80,11 +80,11 @@ func validate(token string, key *rsa.PublicKey) (interface{}, error) {
 		return key, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("couldn't parse : %w", err)
+		return fmt.Errorf("couldn't parse : %w", err)
 	}
-	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	_, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok || !parsedToken.Valid {
-		return nil, fmt.Errorf("invalid token : %w", err)
+		return fmt.Errorf("invalid token : %w", err)
 	}
-	return claims["sub"], nil
+	return nil
 }

@@ -1,39 +1,38 @@
 package v1
 
 import (
-	"context"
 	"net/http"
 	"time"
 
-	"github.com/VrMolodyakov/jwt-auth/internal/domain/entity"
 	"github.com/VrMolodyakov/jwt-auth/internal/errs"
 	"github.com/VrMolodyakov/jwt-auth/pkg/hashing"
 	"github.com/VrMolodyakov/jwt-auth/pkg/logging"
 	"github.com/gin-gonic/gin"
 )
 
-type UserService interface {
-	Create(ctx context.Context, username string, password string) (entity.User, error)
-	Get(ctx context.Context, username string) (entity.User, error)
-}
-
-type TokenHandler interface {
-	CreateAccessToken(ttl time.Duration, payload interface{}) (string, error)
-	CreateRefreshToken(ttl time.Duration, payload interface{}) (string, error)
-	ValidateAccessToken(token string) (interface{}, error)
-	ValidateRefreshToken(token string) (interface{}, error)
-}
-
 type authController struct {
 	logger       *logging.Logger
 	userService  UserService
 	tokenHandler TokenHandler
+	tokenService TokenService
 	accessTtl    int
 	refreshTtl   int
 }
 
-func NewAuthController(userService UserService, logger *logging.Logger, tokenHandler TokenHandler, accessTtl int, refreshTtl int) *authController {
-	return &authController{userService: userService, logger: logger, tokenHandler: tokenHandler, accessTtl: accessTtl, refreshTtl: refreshTtl}
+func NewAuthController(
+	userService UserService,
+	logger *logging.Logger,
+	tokenHandler TokenHandler,
+	tokenService TokenService,
+	accessTtl int,
+	refreshTtl int) *authController {
+	return &authController{
+		userService:  userService,
+		logger:       logger,
+		tokenHandler: tokenHandler,
+		tokenService: tokenService,
+		accessTtl:    accessTtl,
+		refreshTtl:   refreshTtl}
 }
 
 func (a *authController) SignUpUser(ctx *gin.Context) {
@@ -70,10 +69,10 @@ func (a *authController) SignInUser(ctx *gin.Context) {
 
 	user, err := a.userService.Get(ctx, request.Username)
 	if err != nil {
-		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Code("wrong username"), errs.Parameter("username"), err))
+		errs.HTTPErrorResponse(ctx, a.logger, err)
 		return
 	}
-	a.logger.Debugf("FIND USER = %v", user)
+	a.logger.Debugf("find user = %v", user)
 	err = hashing.ComparePassword(user.Password, request.Password)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Code("wrong password"), errs.Parameter("password"), err))
@@ -87,11 +86,45 @@ func (a *authController) SignInUser(ctx *gin.Context) {
 	}
 	refreshToken, err := a.tokenHandler.CreateRefreshToken(time.Duration(a.refreshTtl)*time.Second, user.Id)
 	if err != nil {
-		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Code("wrong password"), errs.Parameter("password"), err))
+		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Internal, err))
+		return
+	}
+
+	err = a.tokenService.Save(refreshToken, user.Id, time.Duration(a.refreshTtl)*time.Second)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, err)
+		return
+	}
+
+	ctx.SetCookie("access_token", accessToken, a.accessTtl*60, "/", "localhost", false, true)
+	ctx.SetCookie("refresh_token", refreshToken, a.refreshTtl*60, "/", "localhost", false, true)
+	ctx.SetCookie("logged_in", "true", a.accessTtl*60, "/", "localhost", false, false)
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": accessToken})
+}
+
+func (a *authController) RefreshAccessToken(ctx *gin.Context) {
+	refreshToken, err := ctx.Cookie("refresh_token")
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
+		return
+	}
+	err = a.tokenHandler.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
+		return
+	}
+	userId, err := a.tokenService.Find(refreshToken)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, err)
+		return
+	}
+	accessToken, err := a.tokenHandler.CreateAccessToken(time.Duration(a.refreshTtl)*time.Second, userId)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Internal, err))
 		return
 	}
 	ctx.SetCookie("access_token", accessToken, a.accessTtl*60, "/", "localhost", false, true)
-	ctx.SetCookie("refresh_token", refreshToken, a.refreshTtl*60, "/", "localhost", false, true)
 	ctx.SetCookie("logged_in", "true", a.accessTtl*60, "/", "localhost", false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": accessToken})

@@ -27,7 +27,7 @@ type Error struct {
 	Err   error
 }
 
-func (e *Error) Unweap() error {
+func (e *Error) Unwrap() error {
 	return e.Err
 }
 
@@ -47,6 +47,9 @@ func New(args ...interface{}) error {
 			e.Err = arg
 		case Parameter:
 			e.Param = arg
+		case Code:
+			e.Code = arg
+
 		}
 
 	}
