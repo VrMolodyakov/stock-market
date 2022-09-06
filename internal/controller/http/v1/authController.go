@@ -79,18 +79,18 @@ func (a *authController) SignInUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := a.tokenHandler.CreateAccessToken(time.Duration(a.accessTtl)*time.Second, user.Id)
+	accessToken, err := a.tokenHandler.CreateAccessToken(time.Duration(a.accessTtl)*time.Minute, user.Id)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Internal, err))
 		return
 	}
-	refreshToken, err := a.tokenHandler.CreateRefreshToken(time.Duration(a.refreshTtl)*time.Second, user.Id)
+	refreshToken, err := a.tokenHandler.CreateRefreshToken(time.Duration(a.refreshTtl)*time.Minute, user.Id)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Internal, err))
 		return
 	}
 
-	err = a.tokenService.Save(refreshToken, user.Id, time.Duration(a.refreshTtl)*time.Second)
+	err = a.tokenService.Save(refreshToken, user.Id, time.Duration(a.refreshTtl)*time.Minute)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, err)
 		return
@@ -119,7 +119,7 @@ func (a *authController) RefreshAccessToken(ctx *gin.Context) {
 		errs.HTTPErrorResponse(ctx, a.logger, err)
 		return
 	}
-	accessToken, err := a.tokenHandler.CreateAccessToken(time.Duration(a.refreshTtl)*time.Second, userId)
+	accessToken, err := a.tokenHandler.CreateAccessToken(time.Duration(a.refreshTtl)*time.Minute, userId)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Internal, err))
 		return
@@ -128,4 +128,28 @@ func (a *authController) RefreshAccessToken(ctx *gin.Context) {
 	ctx.SetCookie("logged_in", "true", a.accessTtl*60, "/", "localhost", false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": accessToken})
+}
+
+func (a *authController) Logout(ctx *gin.Context) {
+	refreshToken, err := ctx.Cookie("refresh_token")
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
+		return
+	}
+	err = a.tokenHandler.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
+		return
+	}
+	err = a.tokenService.Remove(refreshToken)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, a.logger, err)
+		return
+	}
+	ctx.SetCookie("access_token", "", -1, "/", "localhost", false, true)
+	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
+	ctx.SetCookie("logged_in", "", -1, "/", "localhost", false, true)
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
+
 }

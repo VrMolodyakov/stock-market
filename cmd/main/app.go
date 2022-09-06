@@ -51,6 +51,7 @@ func main() {
 	r := gin.Default()
 	r.POST("/user", cntrl.SignUpUser)
 	r.POST("/create", cntrl.SignInUser)
-	r.POST("/refresh", cntrl.RefreshAccessToken)
+	r.GET("/refresh", cntrl.RefreshAccessToken)
+	r.GET("/logout", cntrl.Logout)
 	r.Run()
 }

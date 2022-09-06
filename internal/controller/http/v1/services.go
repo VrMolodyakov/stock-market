@@ -22,4 +22,5 @@ type TokenHandler interface {
 type TokenService interface {
 	Save(refreshToken string, userId int, expireAt time.Duration) error
 	Find(refreshToken string) (int, error)
+	Remove(refreshToken string) error
 }

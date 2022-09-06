@@ -10,6 +10,7 @@ import (
 type TokenStorage interface {
 	Set(refreshToken string, userId int, expireAt time.Duration) error
 	Get(refreshToken string) (int, error)
+	Delete(refreshToken string) error
 }
 
 type tokenService struct {
@@ -38,4 +39,11 @@ func (t *tokenService) Find(refreshToken string) (int, error) {
 		return -1, errs.New(errs.Validation, errs.Code("refresh token is empty"), errs.Parameter("refresh token"))
 	}
 	return t.storage.Get(refreshToken)
+}
+
+func (t *tokenService) Remove(refreshToken string) error {
+	if len(refreshToken) == 0 {
+		return errs.New(errs.Validation, errs.Code("refresh token is empty"), errs.Parameter("refresh token"))
+	}
+	return t.storage.Delete(refreshToken)
 }
