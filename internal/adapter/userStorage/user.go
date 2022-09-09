@@ -64,3 +64,20 @@ func (u *userStorage) Find(ctx context.Context, username string) (entity.User, e
 	}
 	return user, nil
 }
+
+func (u *userStorage) FindById(ctx context.Context, id int) (entity.User, error) {
+	sql := `SELECT u_id,u_name,u_password,create_at FROM users WHERE u_id = $1`
+	var user entity.User
+	err := u.client.QueryRow(ctx, sql, id).Scan(&user.Id, &user.Username, &user.Password, &user.CreateAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entity.User{}, errs.New(
+				errs.Validation,
+				errs.Code("user name not found"),
+				errs.Parameter("username"),
+				err)
+		}
+		return entity.User{}, err
+	}
+	return user, nil
+}

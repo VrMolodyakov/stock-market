@@ -23,7 +23,6 @@ func NewTokenService(storage TokenStorage, logger *logging.Logger) *tokenService
 }
 
 func (t *tokenService) Save(refreshToken string, userId int, expireAt time.Duration) error {
-	t.logger.Debugf("try to save token %v with %v ", refreshToken, userId)
 	if len(refreshToken) == 0 {
 		return errs.New(errs.Validation, errs.Code("refresh token is empty"), errs.Parameter("refresh token"))
 	}
@@ -34,7 +33,6 @@ func (t *tokenService) Save(refreshToken string, userId int, expireAt time.Durat
 }
 
 func (t *tokenService) Find(refreshToken string) (int, error) {
-	t.logger.Debugf("try to find user id by token %v ", refreshToken)
 	if len(refreshToken) == 0 {
 		return -1, errs.New(errs.Validation, errs.Code("refresh token is empty"), errs.Parameter("refresh token"))
 	}

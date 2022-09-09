@@ -15,7 +15,6 @@ type UserService interface {
 type TokenHandler interface {
 	CreateAccessToken(ttl time.Duration, payload interface{}) (string, error)
 	CreateRefreshToken(ttl time.Duration, payload interface{}) (string, error)
-	ValidateAccessToken(token string) error
 	ValidateRefreshToken(token string) error
 }
 

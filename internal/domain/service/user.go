@@ -11,6 +11,7 @@ import (
 type UserStorage interface {
 	Insert(ctx context.Context, username string, password string) (entity.User, error)
 	Find(ctx context.Context, username string) (entity.User, error)
+	FindById(ctx context.Context, id int) (entity.User, error)
 }
 
 type userService struct {
@@ -39,4 +40,12 @@ func (u *userService) Get(ctx context.Context, username string) (entity.User, er
 	}
 	u.logger.Debugf("try to get user with username = %v", username)
 	return u.storage.Find(ctx, username)
+}
+
+func (u *userService) GetById(ctx context.Context, id int) (entity.User, error) {
+	if id < 0 {
+		return entity.User{}, errs.New(errs.Validation, errs.Parameter("id"), errs.Code("id less than zero"))
+	}
+	u.logger.Debugf("try to get user with id = %v", id)
+	return u.storage.FindById(ctx, id)
 }

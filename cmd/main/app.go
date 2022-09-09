@@ -9,7 +9,9 @@ import (
 	"github.com/VrMolodyakov/jwt-auth/internal/adapter/tokenStorage"
 	userstorage "github.com/VrMolodyakov/jwt-auth/internal/adapter/userStorage"
 	"github.com/VrMolodyakov/jwt-auth/internal/config"
-	v1 "github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1"
+	v1 "github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/auth"
+	"github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/middleware"
+	"github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/userController"
 	"github.com/VrMolodyakov/jwt-auth/internal/domain/service"
 	"github.com/VrMolodyakov/jwt-auth/pkg/client/postgresql"
 	"github.com/VrMolodyakov/jwt-auth/pkg/client/redis"
@@ -49,9 +51,12 @@ func main() {
 	serv := service.NewUserStorage(logger, storage)
 	cntrl := v1.NewAuthController(serv, logger, tokenHandler, tokenService, 15, 15)
 	r := gin.Default()
+	middleware := middleware.NewAuthMiddleware(serv, tokenService, tokenHandler, logger)
+	userCntr := userController.NewUserController(serv, logger)
 	r.POST("/user", cntrl.SignUpUser)
 	r.POST("/create", cntrl.SignInUser)
 	r.GET("/refresh", cntrl.RefreshAccessToken)
-	r.GET("/logout", cntrl.Logout)
+	r.GET("/logout", middleware.Auth(), cntrl.Logout)
+	r.GET("/me", middleware.Auth(), userCntr.GetCurrentUser)
 	r.Run()
 }
