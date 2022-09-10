@@ -55,10 +55,10 @@ func create(ttl time.Duration, payload interface{}, key *rsa.PrivateKey) (string
 	return token, nil
 }
 
-func (t *tokenHandler) ValidateAccessToken(token string) error {
+func (t *tokenHandler) ValidateAccessToken(token string) (interface{}, error) {
 	key, err := jwt.ParseRSAPublicKeyFromPEM(t.accessPair.PublicKey)
 	if err != nil {
-		return fmt.Errorf("couldn't parse public key: %w ", err)
+		return -1, fmt.Errorf("couldn't parse public key: %w ", err)
 	}
 	return validate(token, key)
 }
@@ -68,11 +68,12 @@ func (t *tokenHandler) ValidateRefreshToken(token string) error {
 	if err != nil {
 		return fmt.Errorf("couldn't parse public key: %w ", err)
 	}
-	return validate(token, key)
+	_, err = validate(token, key)
+	return err
 
 }
 
-func validate(token string, key *rsa.PublicKey) error {
+func validate(token string, key *rsa.PublicKey) (interface{}, error) {
 	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, signed := t.Method.(*jwt.SigningMethodRSA); !signed {
 			return nil, fmt.Errorf("unexpected method - %v", t.Header["alg"])
@@ -80,11 +81,11 @@ func validate(token string, key *rsa.PublicKey) error {
 		return key, nil
 	})
 	if err != nil {
-		return fmt.Errorf("couldn't parse : %w", err)
+		return nil, fmt.Errorf("couldn't parse : %w", err)
 	}
-	_, ok := parsedToken.Claims.(jwt.MapClaims)
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok || !parsedToken.Valid {
-		return fmt.Errorf("invalid token : %w", err)
+		return nil, fmt.Errorf("invalid token : %w", err)
 	}
-	return nil
+	return claims["sub"], nil
 }

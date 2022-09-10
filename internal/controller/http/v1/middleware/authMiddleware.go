@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	v1 "github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/auth"
 	"github.com/VrMolodyakov/jwt-auth/internal/domain/entity"
 	"github.com/VrMolodyakov/jwt-auth/internal/errs"
 	"github.com/VrMolodyakov/jwt-auth/pkg/logging"
@@ -15,7 +16,7 @@ type UserService interface {
 }
 
 type TokenHandler interface {
-	ValidateAccessToken(token string) (int, error)
+	ValidateAccessToken(token string) (interface{}, error)
 }
 
 type TokenService interface {
@@ -35,7 +36,6 @@ func NewAuthMiddleware(userService UserService, tokenService TokenService, token
 
 func (a *authMiddleware) Auth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		a.logger.Info("---------------INSIDE MIDDLEWARE---------------")
 		var accessToken string
 		coockie, err := ctx.Cookie("access_token")
 		authHeader := ctx.Request.Header.Get("Authorization")
@@ -49,18 +49,19 @@ func (a *authMiddleware) Auth() gin.HandlerFunc {
 			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
 			return
 		}
-		userId, err := a.tokenHandler.ValidateAccessToken(accessToken)
+		sub, err := a.tokenHandler.ValidateAccessToken(accessToken)
+		userId := sub.(float64)
 		if err != nil {
 			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
 			return
 		}
-		user, err := a.userService.GetById(ctx, userId)
+		user, err := a.userService.GetById(ctx, int(userId))
 		if err != nil {
 			errs.HTTPErrorResponse(ctx, a.logger, err)
 			return
 		}
-		a.logger.Info("SET CURRENT USER ")
-		ctx.Set("user", user)
+		a.logger.Infof("SET CURRENT USER %v", user)
+		ctx.Set("user", v1.User{Username: user.Username, CreateAt: user.CreateAt})
 		ctx.Next()
 	}
 

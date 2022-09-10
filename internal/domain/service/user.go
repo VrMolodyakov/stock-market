@@ -19,7 +19,7 @@ type userService struct {
 	storage UserStorage
 }
 
-func NewUserStorage(logger *logging.Logger, storage UserStorage) *userService {
+func NewUserService(logger *logging.Logger, storage UserStorage) *userService {
 	return &userService{logger: logger, storage: storage}
 }
 
