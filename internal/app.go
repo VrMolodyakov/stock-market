@@ -13,7 +13,7 @@ import (
 	"github.com/VrMolodyakov/jwt-auth/internal/adapter/tokenStorage"
 	userstorage "github.com/VrMolodyakov/jwt-auth/internal/adapter/userStorage"
 	"github.com/VrMolodyakov/jwt-auth/internal/config"
-	v1 "github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/auth"
+	v1 "github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/authController"
 	"github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/middleware"
 	"github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/route"
 	"github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/userController"

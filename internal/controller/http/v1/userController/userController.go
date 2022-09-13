@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	v1 "github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/auth"
+	v1 "github.com/VrMolodyakov/jwt-auth/internal/controller/http/v1/authController"
 	"github.com/VrMolodyakov/jwt-auth/internal/domain/entity"
 	"github.com/VrMolodyakov/jwt-auth/pkg/logging"
 	"github.com/gin-gonic/gin"
