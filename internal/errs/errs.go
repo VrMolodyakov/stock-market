@@ -82,3 +82,7 @@ func (k Kind) String() string {
 	}
 	return "unknown_error_kind"
 }
+
+func (e *Error) isZero() bool {
+	return e.Kind == 0 && e.Param == "" && e.Code == "" && e.Err == nil
+}

@@ -38,7 +38,7 @@ func HTTPErrorResponse(ctx *gin.Context, logger *logging.Logger, err error) {
 			return
 		}
 	}
-	unknownErrorResponse(ctx, logger, e)
+	unknownErrorResponse(ctx, logger, err)
 }
 
 func badRequesteResponse(c *gin.Context, logger *logging.Logger, err *Error) {
@@ -64,6 +64,12 @@ func unknownErrorResponse(c *gin.Context, logger *logging.Logger, err error) {
 }
 
 func commonErrorResponse(c *gin.Context, logger *logging.Logger, err *Error) {
+
+	if err.isZero() {
+		c.JSON(http.StatusInternalServerError, "internal server error - please contact support")
+		return
+	}
+
 	logger.Errorf("kind =  %v\n parameter = %v\n code =	%v\n error = %v", err.Kind.String(), string(err.Param), string(err.Code), err)
 	e := newErrResponse(err)
 	errJSON, _ := json.Marshal(e)
