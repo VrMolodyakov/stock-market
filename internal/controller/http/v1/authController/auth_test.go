@@ -49,8 +49,8 @@ func TestSignUpUser(t *testing.T) {
 			mock: func() {
 			},
 			inputRequest: `wrong data`,
-			want:         "",
-			expectedCode: 500,
+			want:         "\"Username or password\"",
+			expectedCode: 400,
 		},
 		{
 			title: "Cannot create user and 500 response",
@@ -334,7 +334,7 @@ func TestLogout(t *testing.T) {
 				assert.Nil(t, err)
 				req.AddCookie(&http.Cookie{Name: "refresh_token", Value: "encodedRefreshToken", MaxAge: 60 * 60, Path: "/", Domain: "localhost", Secure: false, HttpOnly: true})
 				req.AddCookie(&http.Cookie{Name: "access_token", Value: "encodedAccessToken", MaxAge: 60 * 60, Path: "/", Domain: "localhost", Secure: false, HttpOnly: true})
-				req.AddCookie(&http.Cookie{Name: "access_token", Value: "true", MaxAge: 60 * 60, Path: "/", Domain: "localhost", Secure: false, HttpOnly: true})
+				req.AddCookie(&http.Cookie{Name: "loggin", Value: "true", MaxAge: 60 * 60, Path: "/", Domain: "localhost", Secure: false, HttpOnly: true})
 				return req
 
 			},
@@ -349,7 +349,7 @@ func TestLogout(t *testing.T) {
 				req, err := http.NewRequest("GET", "/logout", nil)
 				assert.Nil(t, err)
 				req.AddCookie(&http.Cookie{Name: "access_token", Value: "encodedAccessToken", MaxAge: 60 * 60, Path: "/", Domain: "localhost", Secure: false, HttpOnly: true})
-				req.AddCookie(&http.Cookie{Name: "access_token", Value: "true", MaxAge: 60 * 60, Path: "/", Domain: "localhost", Secure: false, HttpOnly: true})
+				req.AddCookie(&http.Cookie{Name: "loggin", Value: "true", MaxAge: 60 * 60, Path: "/", Domain: "localhost", Secure: false, HttpOnly: true})
 				return req
 
 			},

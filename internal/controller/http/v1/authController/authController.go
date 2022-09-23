@@ -40,7 +40,7 @@ func (a *authController) SignUpUser(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
-		errs.HTTPErrorResponse(ctx, a.logger, err)
+		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Parameter("Username or password")))
 		return
 	}
 	hashedPassword, err := hashing.HashPassword(request.Password)

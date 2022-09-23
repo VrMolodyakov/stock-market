@@ -50,14 +50,14 @@ func (a *authMiddleware) Auth() gin.HandlerFunc {
 			return
 		}
 		sub, err := a.tokenHandler.ValidateAccessToken(accessToken)
-		userId := sub.(float64)
 		if err != nil {
 			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
 			return
 		}
+		userId := sub.(float64)
 		user, err := a.userService.GetById(ctx, int(userId))
 		if err != nil {
-			errs.HTTPErrorResponse(ctx, a.logger, err)
+			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Parameter("user id not found")))
 			return
 		}
 		a.logger.Infof("SET CURRENT USER %v", user)
