@@ -1,0 +1,32 @@
+.stock-container{
+    background-color: rgb(219, 239, 248);
+    text-align: center;
+    color:rgb(13, 15, 15);
+}
+
+.Code{
+    font-family: sans-serif;
+    text-align: center;
+    text-align: center;
+    color:rgb(35, 170, 64)
+
+}
+
+fill.colors {
+    color:rgb(60, 189, 71);
+}
+
+.price{
+    font-size: 40px;
+    color:yellowgreen;
+}
+
+.symbol{
+    margin-top: 10px;
+    font-size: 40px;
+}
+
+.time{
+    font-size: 40px;
+    color: black;
+}
