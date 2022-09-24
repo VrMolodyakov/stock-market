@@ -1,3 +1,22 @@
-.vscode/*
-db_data/*
-TODO
+react-client/.vscode/*
+server/db_data/*
+
+react-client/node_modules
+react-client/.pnp
+react-client.pnp.js
+
+react-client/coverage
+
+react-client# production
+react-client/build
+
+
+react-client/.DS_Store
+react-client/.env.local
+react-client/.env.development.local
+react-client/.env.test.local
+react-client/.env.production.local
+
+react-client/npm-debug.log*
+react-client/yarn-debug.log*
+react-client/yarn-error.log*
