@@ -8,11 +8,11 @@ const Register = () => {
         e.preventDefault();
 
         const userData = {
-            login: login,
+            username: login,
             password: password,
             email:email
         };
-        axios.post("http://localhost:8080/registration", userData)
+        axios.post("http://localhost:8080/api/auth/register", userData)
              .then((response) => {
                 console.log(response.status);
                 console.log(response);
