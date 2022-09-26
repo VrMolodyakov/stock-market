@@ -6,10 +6,11 @@ import Code from './stock/StockCode'
 import RequierAuth from './routing/RequireAuth';
 import { BrowserRouter, Routes, Route,Navigate,useNavigate } from "react-router-dom"
 import { Navbar,Nav,Container} from 'react-bootstrap';
+import axios from "axios";
 import Layout from './Layout';
 import "./App.css"
 
-
+//,{withCredentials: true ,headers: {"Content-type": "application/json", },}
 
 function App() {
   const navigate = useNavigate();
@@ -19,9 +20,18 @@ function App() {
     const token = '';
     setAuth({token});
     localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
     localStorage.clear();
     console.log("click");
+    const axiosInstance = axios.create({
+      withCredentials: true
+   })
+   axiosInstance.get("http://localhost:8080/api/auth/logout")
+    .then((response) => {
+        console.log(response)
+    })
+    .catch((error) => {
+        console.log(error.config);
+    });
     navigate("/auth");
   };
 

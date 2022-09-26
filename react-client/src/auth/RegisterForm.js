@@ -55,16 +55,6 @@ const Register = () => {
                 />
                 </div>
                 <div className="form-group mt-3">
-                <label>Email address</label>
-                <input
-                    type="email"
-                    className="form-control mt-1"
-                    placeholder="Horus@mail.com"
-                    value={email}
-                    onChange={onChangeEmail}
-                />
-                </div>
-                <div className="form-group mt-3">
                 <label>Password</label>
                 <input
                     type="password"

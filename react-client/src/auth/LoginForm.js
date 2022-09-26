@@ -25,6 +25,7 @@ const Login = () =>{
 
   const instance = axios.create({
     baseURL: "http://localhost:8080",
+    withCredentials: true,
     headers: {
       "Content-Type": "application/json",
     },
@@ -49,14 +50,13 @@ const Login = () =>{
 
 
   const getToken = async (userData) =>{
-    return instance.post("http://localhost:8080/login", userData);
+    return instance.post("/api/auth/login", userData);
   }
 
   useEffect(() => {
     if (auth.token) {
       console.log(auth); // add your logs here to see the updates after re-render
       localStorage.setItem("access_token", auth.token); // so you get it later
-      localStorage.setItem("refresh_token", auth.refreshToken); // so you get it later
       navigate("/home");
     }
   }, [auth]);
@@ -65,16 +65,17 @@ const Login = () =>{
     e.preventDefault();
 
     const userData = {
-      login: login,
+      username: login,
       password: password,
     };
 
     (async() => {
       const response = await getToken(userData);
       const data =  response.data;
-      const token = data.token;
+      const token = data.access_token;
+      console.log(token)
       const refreshToken = data.refreshToken;
-      setAuth({token,refreshToken});
+      setAuth({token});
       console.log(auth);
     })();
     
