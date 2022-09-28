@@ -95,7 +95,7 @@ const Code = (props) => {
   };
 
   const getStockData = async () => {
-    return instance.get(`http://localhost:8080/api/${slug}`);
+    return instance.get(`http://localhost:8080/api/stock/symbols/${slug}`);
   }
 
   useEffect(() => {

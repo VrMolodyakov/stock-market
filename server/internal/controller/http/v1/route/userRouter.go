@@ -2,16 +2,16 @@ package route
 
 import "github.com/gin-gonic/gin"
 
-type UserController interface {
+type UserHandler interface {
 	GetCurrentUser(ctx *gin.Context)
 }
 
 type userRouter struct {
-	userHandler    UserController
+	userHandler    UserHandler
 	authMiddleware AuthMiddleware
 }
 
-func NewUserRouter(userHandler UserController, authMiddleware AuthMiddleware) *userRouter {
+func NewUserRouter(userHandler UserHandler, authMiddleware AuthMiddleware) *userRouter {
 	return &userRouter{userHandler: userHandler, authMiddleware: authMiddleware}
 }
 

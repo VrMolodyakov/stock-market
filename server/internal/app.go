@@ -16,6 +16,7 @@ import (
 	v1 "github.com/VrMolodyakov/stock-market/internal/controller/http/v1/auth"
 	"github.com/VrMolodyakov/stock-market/internal/controller/http/v1/middleware"
 	"github.com/VrMolodyakov/stock-market/internal/controller/http/v1/route"
+	"github.com/VrMolodyakov/stock-market/internal/controller/http/v1/stock"
 	userController "github.com/VrMolodyakov/stock-market/internal/controller/http/v1/user"
 	"github.com/VrMolodyakov/stock-market/internal/domain/service"
 	"github.com/VrMolodyakov/stock-market/pkg/client/postgresql"
@@ -71,12 +72,15 @@ func (a *app) startHttp() {
 	authController := v1.NewAuthController(userService, a.logger, tokenHandler, tokenService, a.cfg.Token.AccessTtl, a.cfg.Token.RefreshTtl)
 	authMiddleware := middleware.NewAuthMiddleware(userService, tokenService, tokenHandler, a.logger)
 	userController := userController.NewUserController(userService, a.logger)
+	stockHandler := stock.NewStockHandler(*a.logger)
 	a.server.Use(middleware.CORSMiddleware())
 	router := a.server.Group("/api")
 	authRouter := route.NewAuthRouter(authController, authMiddleware)
 	userRouter := route.NewUserRouter(userController, authMiddleware)
+	stockRouter := route.NewStockRouter(stockHandler, authMiddleware)
 	authRouter.AuthRoute(router)
 	userRouter.UserRoute(router)
+	stockRouter.StockRoute(router)
 
 	a.server.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": "fail", "message": fmt.Sprintf("Route %s not found", ctx.Request.URL)})

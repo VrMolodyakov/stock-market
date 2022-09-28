@@ -46,17 +46,21 @@ func (a *authMiddleware) Auth() gin.HandlerFunc {
 			accessToken = coockie
 		}
 		if accessToken == "" {
+			ctx.Abort()
 			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
 			return
 		}
+		a.logger.Info("access token:", accessToken)
 		sub, err := a.tokenHandler.ValidateAccessToken(accessToken)
 		if err != nil {
+			ctx.Abort()
 			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
 			return
 		}
 		userId := sub.(float64)
 		user, err := a.userService.GetById(ctx, int(userId))
 		if err != nil {
+			ctx.Abort()
 			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Parameter("user id not found")))
 			return
 		}

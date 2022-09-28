@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type authController struct {
+type authHandler struct {
 	logger       *logging.Logger
 	userService  UserService
 	tokenHandler TokenHandler
@@ -25,8 +25,8 @@ func NewAuthController(
 	tokenHandler TokenHandler,
 	tokenService TokenService,
 	accessTtl int,
-	refreshTtl int) *authController {
-	return &authController{
+	refreshTtl int) *authHandler {
+	return &authHandler{
 		userService:  userService,
 		logger:       logger,
 		tokenHandler: tokenHandler,
@@ -35,7 +35,7 @@ func NewAuthController(
 		refreshTtl:   refreshTtl}
 }
 
-func (a *authController) SignUpUser(ctx *gin.Context) {
+func (a *authHandler) SignUpUser(ctx *gin.Context) {
 	var request UserRequest
 
 	err := ctx.ShouldBindJSON(&request)
@@ -58,7 +58,7 @@ func (a *authController) SignUpUser(ctx *gin.Context) {
 
 }
 
-func (a *authController) SignInUser(ctx *gin.Context) {
+func (a *authHandler) SignInUser(ctx *gin.Context) {
 	var request UserRequest
 
 	err := ctx.ShouldBindJSON(&request)
@@ -103,7 +103,7 @@ func (a *authController) SignInUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": accessToken})
 }
 
-func (a *authController) RefreshAccessToken(ctx *gin.Context) {
+func (a *authHandler) RefreshAccessToken(ctx *gin.Context) {
 	refreshToken, err := ctx.Cookie("refresh_token")
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
@@ -130,7 +130,7 @@ func (a *authController) RefreshAccessToken(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": accessToken})
 }
 
-func (a *authController) Logout(ctx *gin.Context) {
+func (a *authHandler) Logout(ctx *gin.Context) {
 	refreshToken, err := ctx.Cookie("refresh_token")
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
