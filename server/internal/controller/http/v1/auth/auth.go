@@ -109,6 +109,7 @@ func (a *authHandler) RefreshAccessToken(ctx *gin.Context) {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
 		return
 	}
+	a.logger.Infof("get refreshToken from cookie = %v", refreshToken)
 	err = a.tokenHandler.ValidateRefreshToken(refreshToken)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))

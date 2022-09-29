@@ -19,6 +19,7 @@ const Code = (props) => {
 
   const instance = axios.create({
     baseURL: "http://localhost:8080",
+    withCredentials: true,
     headers: {
       "Content-Type": "application/json",
     },
@@ -26,6 +27,7 @@ const Code = (props) => {
 
   const refreshInstance = axios.create({
     baseURL: "http://localhost:8080",
+    withCredentials: true,
     headers: {
       "Content-Type": "application/json",
     },
@@ -64,19 +66,23 @@ const Code = (props) => {
 
   instance.interceptors.request.use(
     async (config) => {
+      console.log("inside refresh interceptors")
       const accessToken = localStorage.getItem("access_token");
       const auth = jwt_decode(accessToken);
       const expireTime = auth.exp * 1000;
+      console.log("expireTime",expireTime)
       const now = + new Date();
+      console.log("now",now)
       if (expireTime > now) {
         config.headers["Authorization"] = 'Bearer ' + accessToken;
       } else {
-          const refreshToken = localStorage.getItem("refresh_token");
-          const response = await refreshAccessToken(refreshToken);
+          const response = await refreshAccessToken();
+          console.log("getting response")
+          console.log(response);
           const data = response.data;
           console.log(data);
-          const accessToken = data.accessToken;
-          setAuth({token: accessToken,refreshToken});
+          const accessToken = data.access_token;
+          setAuth({token: accessToken});
           localStorage.removeItem("access_token");
           localStorage.setItem("access_token", accessToken);
           config.headers["Authorization"] = 'Bearer ' + accessToken;
@@ -90,12 +96,12 @@ const Code = (props) => {
     }
   );
 
-  const refreshAccessToken =async (token) => {
-    return refreshInstance.post("/refresh", token);
+  const refreshAccessToken =async () => {
+    return refreshInstance.get("/api/auth/refresh");
   };
 
   const getStockData = async () => {
-    return instance.get(`http://localhost:8080/api/stock/symbols/${slug}`);
+    return instance.get(`/api/stock/symbols/${slug}`);
   }
 
   useEffect(() => {
