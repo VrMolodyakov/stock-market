@@ -55,8 +55,8 @@ const Login = () =>{
 
   useEffect(() => {
     if (auth.token) {
-      console.log(auth); // add your logs here to see the updates after re-render
-      localStorage.setItem("access_token", auth.token); // so you get it later
+      console.log(auth);
+      localStorage.setItem("access_token", auth.token); 
       navigate("/home");
     }
   }, [auth]);

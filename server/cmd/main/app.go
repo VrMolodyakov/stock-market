@@ -16,4 +16,5 @@ func main() {
 	logger := logging.GetLogger("debug")
 	app := internal.NewApp(logger, cfg, gin.Default())
 	app.Run()
+
 }

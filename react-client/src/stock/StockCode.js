@@ -66,34 +66,28 @@ const Code = (props) => {
 
   instance.interceptors.request.use(
     async (config) => {
-      console.log("inside refresh interceptors")
       const accessToken = localStorage.getItem("access_token");
       const auth = jwt_decode(accessToken);
       const expireTime = auth.exp * 1000;
-      console.log("expireTime",expireTime)
       const now = + new Date();
-      console.log("now",now)
       if (expireTime > now) {
         config.headers["Authorization"] = 'Bearer ' + accessToken;
       } else {
           const response = await refreshAccessToken();
-          console.log("getting response")
-          console.log(response);
           const data = response.data;
-          console.log(data);
           const accessToken = data.access_token;
           setAuth({token: accessToken});
           localStorage.removeItem("access_token");
           localStorage.setItem("access_token", accessToken);
           config.headers["Authorization"] = 'Bearer ' + accessToken;
-          console.log("refresh is finished")
       }
       console.log("exist from interceptors")
       return config;
     },
     (error) => {
-      return Promise.reject(error);
-    }
+      console.log(error)
+      console.log("token is expired")
+      }
   );
 
   const refreshAccessToken =async () => {
@@ -107,6 +101,7 @@ const Code = (props) => {
   useEffect(() => {
     (async () => {
       const response = await getStockData();
+      console.log(response)
       const data = response.data;
       const stockInfo = data.chart.result[0];
       console.log(stockInfo);
@@ -124,7 +119,11 @@ const Code = (props) => {
 
 
       setStockData({ data });
-    })();
+    })().catch( 
+      (error) =>{
+        console.log("HERE UNCAUGHTER")
+      } 
+    );
   }, []);
 
   return (

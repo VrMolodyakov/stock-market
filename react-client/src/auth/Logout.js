@@ -1,4 +1,6 @@
 import {useNavigate} from "react-router-dom";
+import axios from "axios";
+
 
 const instance = axios.create({
     baseURL: "http://localhost:8080",
@@ -9,7 +11,7 @@ const instance = axios.create({
   });
 
 const removeCookie = async () =>{
-    return instance.get("/api/auth/logout", userData);
+    return instance.get("/api/auth/logout");
   }
 
 const Logout = () =>{

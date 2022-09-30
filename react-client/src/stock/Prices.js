@@ -6,7 +6,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "./Prices.css"
 
 function Table({ columns, data }) {
-    // Use the state and functions returned from useTable to build your UI
     const [filterInput, setFilterInput] = useState("");
     const navigate = useNavigate();
     const onRowClick = (e) => {
@@ -15,7 +14,7 @@ function Table({ columns, data }) {
 
     const handleFilterChange = (e) => {
       const value = e.target.value || undefined;
-      setFilter("symbol", value); // Update the show.name filter. Now our table will filter and show only the rows which have a matching value
+      setFilter("symbol", value); 
       setFilterInput(value);
     };
     
@@ -75,10 +74,8 @@ function Table({ columns, data }) {
                     })}
                 </tbody>
             </table>
-            {/* 
-        Pagination can be built however you'd like. 
-        This is just a very basic UI implementation:
-      */}
+            {
+            }
             <ul className="pagination">
                 <li className="page-item" onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
                     <a className="page-link">First</a>
@@ -148,8 +145,8 @@ function Prices() {
                         accessor: "name"
                     },
                     {
-                        Header: "Price",
-                        accessor: "price"
+                        Header: "Exchange",
+                        accessor: "exchange"
                     }
                 ]
             }

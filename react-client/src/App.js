@@ -10,8 +10,6 @@ import axios from "axios";
 import Layout from './Layout';
 import "./App.css"
 
-//,{withCredentials: true ,headers: {"Content-type": "application/json", },}
-
 function App() {
   const navigate = useNavigate();
   const {auth,setAuth} = useAuth();
