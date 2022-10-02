@@ -4,6 +4,7 @@ import Prices from './stock/Prices';
 import useAuth from './routing/useAuth'
 import Code from './stock/StockCode'
 import RequierAuth from './routing/RequireAuth';
+import Logout from "./auth/Logout"
 import { BrowserRouter, Routes, Route,Navigate,useNavigate } from "react-router-dom"
 import { Navbar,Nav,Container} from 'react-bootstrap';
 import axios from "axios";
@@ -15,11 +16,7 @@ function App() {
   const {auth,setAuth} = useAuth();
 
   const onLogout = () =>{
-    const token = '';
-    setAuth({token});
-    localStorage.removeItem("access_token");
-    localStorage.clear();
-    console.log("click");
+    Logout(auth, setAuth)
     const axiosInstance = axios.create({
       withCredentials: true
    })

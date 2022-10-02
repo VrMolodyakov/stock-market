@@ -1,6 +1,7 @@
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 import useAuth from '../routing/useAuth';
 import { useState, useEffect, useMemo } from 'react'
+import Logout from "../auth/Logout"
 import Chart from 'react-apexcharts';
 import axios from "axios";
 import jwt_decode from 'jwt-decode'
@@ -8,6 +9,7 @@ import "./StockCode.css"
 
 const Code = (props) => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [stockData, setStockData] = useState({});
   const [priceTime, setPriceTime] = useState(null);
   const [symbol, setSymbol] = useState("");
@@ -121,7 +123,9 @@ const Code = (props) => {
       setStockData({ data });
     })().catch( 
       (error) =>{
-        console.log("HERE UNCAUGHTER")
+        console.log(error)
+        Logout(auth, setAuth)
+        navigate("/auth");
       } 
     );
   }, []);
