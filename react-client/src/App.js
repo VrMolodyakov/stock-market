@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route,Navigate,useNavigate } from "react-router-
 import { Navbar,Nav,Container} from 'react-bootstrap';
 import axios from "axios";
 import Layout from './Layout';
+import Home from "./home/Home"
 import "./App.css"
 
 function App() {
@@ -53,6 +54,7 @@ function App() {
      
       <Routes>
           <Route path="/" element={<Layout />}>
+            <Route path="" element={<Home />} />
             <Route path="auth" element={<Login />} />
             <Route path="reg" element={<Register />} />
             <Route element = {<RequierAuth/>}>
