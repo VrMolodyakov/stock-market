@@ -3,6 +3,7 @@
 .Auth-form-container {
   display: flex;
   justify-content: center;
+  background-image: linear-gradient(to bottom right, #121C84,  #1595248c);
   align-items: center;
   width: 100vw;
   height: 100vh;
@@ -20,6 +21,7 @@
 .Auth-form-content {
   padding-left: 12%;
   padding-right: 12%;
+  
 }
 
 .Auth-form-title {
@@ -38,14 +40,17 @@ label {
 
 .link-holder{
   font-size: large;
+  
 }
 
 .navBarLink{
   margin-right: 8px;
+  color: rgb(255, 255, 255);
 }
 
 .Home{
   margin-left: 1%;
+  color: rgb(255, 255, 255);
 }
 
 .links{

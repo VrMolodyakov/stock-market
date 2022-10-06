@@ -2,6 +2,7 @@ import React, { Component, useEffect, useState } from 'react'
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import useAuth from '../routing/useAuth'
+import "./LoginForm.css"
 import 'bootstrap/dist/css/bootstrap.css';
 
 const Login = () =>{

@@ -45,9 +45,8 @@ function Table({ columns, data }) {
         usePagination
     )
 
-    // Render the UI for your table
     return (
-        <div>
+        <div className="price-c">
             <h1><span className="blue"></span>Current Stock<span className="blue"></span> <span className="yellow">Prices</span></h1>
             <h2>Created by <a href="https://github.com/VrMolodyakov" target="_blank">Vyachesav</a></h2>
             <input className = "symbol-input" value={filterInput} onChange={handleFilterChange} placeholder={"Search symbol"}/>
@@ -56,6 +55,7 @@ function Table({ columns, data }) {
                     {headerGroups.map(headerGroup => (
                         <tr {...headerGroup.getHeaderGroupProps()}>
                             {headerGroup.headers.map(column => (
+                                column.hide === true ? null :
                                 <th {...column.getHeaderProps()}>{column.render('Header')}</th>
                             ))}
                         </tr>
@@ -135,6 +135,7 @@ function Prices() {
         () => [
             {
                 Header: ' ',
+                hide : true,
                 columns: [
                     {
                         Header: "Symbol",
