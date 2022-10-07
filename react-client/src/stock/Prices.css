@@ -22,18 +22,18 @@
    display: block;
    line-height:1em;
    padding-bottom: 2em;
-   color: #FB667A;
+   color: #ffffff;
  }
  
  h2 a {
    font-weight: 700;
    text-transform: uppercase;
-   color: #FB667A;
+   color: #8166fb;
    text-decoration: none;
  }
  
  .blue { color: #185875; }
- .yellow { color: #FFF842; }
+ .yellow { color: #29b73b9f; }
  
  .container th h1 {
        font-weight: bold;
@@ -79,7 +79,7 @@
        background-color: #22275db7;
  }
  
- .container td:first-child { color: #FB667A; }
+ .container td:first-child { color: #42d562; }
  
  .container tr:hover {
     background-color: #464A52;
@@ -110,11 +110,11 @@
 
  .pagination {
     margin-top: 5px;
-    margin-left: 35%;
+    margin-left: 32%;
 }
 
 .page-link{
-    color: #FB667A;
+    color: #ffffff;
     background-color: #26316e;
     border-color: #044461;
     border-left-color: #3c4491;
@@ -128,7 +128,7 @@
 }
 
 .form-control-inpt{
-    color: #FB667A;
+    color: #ffffff;
     background-color: #26316e;
     border-color: #044461;
     border-left-color: #3c4491;
@@ -136,7 +136,7 @@
 }
 
 .form-control-inpt:focus {
-    color: #f0a0ab;
+    color: #ffffff;
     background-color: #26316e;
     border-color: #044461;
     border-left-color: #3c4491;
@@ -144,7 +144,7 @@
 }
 
 .symbol-input{
-    margin-left: 73%;
+    margin-left: 80.25%;
     background-color: #1a303d;
     border-color: #044461;
     width: 150px;
@@ -160,10 +160,10 @@
   }
 
 ::placeholder{
-    color: rgb(211, 56, 56);
+    color: rgb(56, 211, 77);
 }
 
 textarea:focus, input:focus {
-    color: #da2c26;
+   color: rgb(239, 239, 239);
 }
 
