@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	stockstorage "github.com/VrMolodyakov/stock-market/internal/adapter/stockStorage"
 	"github.com/VrMolodyakov/stock-market/internal/adapter/tokenStorage"
 	userstorage "github.com/VrMolodyakov/stock-market/internal/adapter/userStorage"
 	"github.com/VrMolodyakov/stock-market/internal/config"
@@ -63,16 +64,17 @@ func (a *app) startHttp() {
 	if err != nil {
 		a.logger.Fatal(err)
 	}
-
+	stockStorage := stockstorage.NewStockStorage(a.logger, rdClient)
 	tokenStorage := tokenStorage.NewChoiceCache(rdClient, a.logger)
 	accessPair, refreshPair := a.initTokens()
 	tokenHandler := token.NewTokenHandler(a.logger, accessPair, refreshPair)
 	tokenService := service.NewTokenService(tokenStorage, a.logger)
 	userService := service.NewUserService(a.logger, storage)
+	cacheService := service.NewCacheService(a.logger, stockStorage)
 	authController := v1.NewAuthController(userService, a.logger, tokenHandler, tokenService, a.cfg.Token.AccessTtl, a.cfg.Token.RefreshTtl)
 	authMiddleware := middleware.NewAuthMiddleware(userService, tokenService, tokenHandler, a.logger)
 	userController := userController.NewUserController(userService, a.logger)
-	stockHandler := stock.NewStockHandler(*a.logger)
+	stockHandler := stock.NewStockHandler(*a.logger, cacheService)
 	a.server.Use(middleware.CORSMiddleware())
 	router := a.server.Group("/api")
 	authRouter := route.NewAuthRouter(authController, authMiddleware)

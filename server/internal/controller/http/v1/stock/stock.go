@@ -4,41 +4,77 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/VrMolodyakov/stock-market/internal/errs"
 	"github.com/VrMolodyakov/stock-market/pkg/logging"
 	"github.com/gin-gonic/gin"
 )
 
-type stockService struct {
-	logger logging.Logger
+// gmt time
+
+const expireAt int = 60
+
+type CacheService interface {
+	Save(symbol string, stockInfo string, duration time.Duration) error
+	Get(symbol string) (string, error)
 }
 
-func NewStockHandler(logger logging.Logger) *stockService {
-	return &stockService{logger: logger}
+type stockService struct {
+	logger       logging.Logger
+	cacheService CacheService
+}
+
+func NewStockHandler(logger logging.Logger, cache CacheService) *stockService {
+	return &stockService{logger: logger, cacheService: cache}
 }
 
 func (ss *stockService) GetStockInfo(ctx *gin.Context) {
 	code := ctx.Param("symbol")
-	ss.logger.Info("code", code)
-	url := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%v", code)
-	ss.logger.Info(url)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
-		return
+	stockInfo, err := ss.cacheService.Get(code)
+	if err == nil {
+		ss.logger.Info("get symbol = %v from cache", code)
+		b := []byte(stockInfo)
+		var chart ChartResponse
+		err = json.Unmarshal(b, &chart)
+		if err != nil {
+			errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
+			return
+		}
+		ctx.JSON(http.StatusOK, chart)
+
+	} else {
+		url := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%v", code)
+		ss.logger.Info(url)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
+			return
+		}
+		defer resp.Body.Close()
+		var chart ChartResponse
+		err = json.NewDecoder(resp.Body).Decode(&chart)
+
+		if err != nil {
+			errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
+			return
+		}
+		ss.cache(chart, code)
+		ctx.JSON(http.StatusOK, chart)
 	}
-	resp, err := http.DefaultClient.Do(req)
+
+}
+
+func (ss *stockService) cache(chart ChartResponse, symbol string) {
+	ss.logger.Infof("try to save in cache symbol = %v", symbol)
+	stringPayload, _ := json.Marshal(chart)
+	err := ss.cacheService.Save(symbol, string(stringPayload), time.Duration(expireAt)*time.Second)
 	if err != nil {
-		errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
-		return
+		ss.logger.Errorf("cannot save to cache due to : %v", err)
 	}
-	defer resp.Body.Close()
-	var chart ChartResponse
-	err = json.NewDecoder(resp.Body).Decode(&chart)
-	if err != nil {
-		errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
-		return
-	}
-	ctx.JSON(http.StatusOK, chart)
 }
