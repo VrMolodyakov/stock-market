@@ -26,8 +26,41 @@ import (
 	"github.com/VrMolodyakov/stock-market/pkg/shutdown"
 	"github.com/VrMolodyakov/stock-market/pkg/token"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+var totalRequests = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "http_requests_total",
+		Help: "Number of get requests.",
+	},
+	[]string{"path"},
+)
+
+var responseStatus = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "response_status",
+		Help: "Status of HTTP response",
+	},
+	[]string{"status"},
+)
+
+var httpDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
+	Name: "http_response_time_seconds",
+	Help: "Duration of HTTP requests.",
+}, []string{"path"})
+
+func prometeusMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Next()
+		path := ctx.FullPath()
+		totalRequests.WithLabelValues(path).Inc()
+	}
+}
+
+//PROMETEUS
 const (
 	writeTimeout = 15 * time.Second
 	readTimeout  = 15 * time.Second
@@ -76,6 +109,9 @@ func (a *app) startHttp() {
 	userController := userController.NewUserController(userService, a.logger)
 	stockHandler := stock.NewStockHandler(*a.logger, cacheService)
 	a.server.Use(middleware.CORSMiddleware())
+	//PROMETEUS
+	a.server.Use(prometeusMiddleware())
+	//PROMETEUS
 	router := a.server.Group("/api")
 	authRouter := route.NewAuthRouter(authController, authMiddleware)
 	userRouter := route.NewUserRouter(userController, authMiddleware)
@@ -87,6 +123,12 @@ func (a *app) startHttp() {
 	a.server.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": "fail", "message": fmt.Sprintf("Route %s not found", ctx.Request.URL)})
 	})
+
+	//PROMETEUS
+
+	router.GET("/prometeus", gin.WrapH(promhttp.Handler()))
+
+	//PROMETEUS
 
 	port := fmt.Sprintf(":%s", a.cfg.Port)
 	server := &http.Server{
