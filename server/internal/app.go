@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -54,13 +55,18 @@ var httpDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
 
 func prometeusMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.Next()
 		path := ctx.FullPath()
+		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+		ctx.Next()
+		statusCode := ctx.Writer.Status()
+		responseStatus.WithLabelValues(strconv.Itoa(statusCode)).Inc()
 		totalRequests.WithLabelValues(path).Inc()
+
+		timer.ObserveDuration()
+
 	}
 }
 
-//PROMETEUS
 const (
 	writeTimeout = 15 * time.Second
 	readTimeout  = 15 * time.Second
@@ -109,9 +115,12 @@ func (a *app) startHttp() {
 	userController := userController.NewUserController(userService, a.logger)
 	stockHandler := stock.NewStockHandler(*a.logger, cacheService)
 	a.server.Use(middleware.CORSMiddleware())
-	//PROMETEUS
+
+	prometheus.Register(totalRequests)
+	prometheus.Register(responseStatus)
+	prometheus.Register(httpDuration)
+
 	a.server.Use(prometeusMiddleware())
-	//PROMETEUS
 	router := a.server.Group("/api")
 	authRouter := route.NewAuthRouter(authController, authMiddleware)
 	userRouter := route.NewUserRouter(userController, authMiddleware)
@@ -124,11 +133,7 @@ func (a *app) startHttp() {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": "fail", "message": fmt.Sprintf("Route %s not found", ctx.Request.URL)})
 	})
 
-	//PROMETEUS
-
 	router.GET("/prometeus", gin.WrapH(promhttp.Handler()))
-
-	//PROMETEUS
 
 	port := fmt.Sprintf(":%s", a.cfg.Port)
 	server := &http.Server{
