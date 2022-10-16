@@ -24,6 +24,7 @@ fill.colors {
 .symbol{
     margin-top: 10px;
     font-size: 40px;
+    color: rgba(61, 65, 63, 0.568);
 }
 
 .time{

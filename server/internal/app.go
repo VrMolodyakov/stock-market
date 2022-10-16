@@ -23,6 +23,7 @@ import (
 	"github.com/VrMolodyakov/stock-market/pkg/client/postgresql"
 	"github.com/VrMolodyakov/stock-market/pkg/client/redis"
 	"github.com/VrMolodyakov/stock-market/pkg/logging"
+	"github.com/VrMolodyakov/stock-market/pkg/metric"
 	"github.com/VrMolodyakov/stock-market/pkg/shutdown"
 	"github.com/VrMolodyakov/stock-market/pkg/token"
 	"github.com/gin-gonic/gin"
@@ -74,7 +75,11 @@ func (a *app) startHttp() {
 	authController := v1.NewAuthController(userService, a.logger, tokenHandler, tokenService, a.cfg.Token.AccessTtl, a.cfg.Token.RefreshTtl)
 	authMiddleware := middleware.NewAuthMiddleware(userService, tokenService, tokenHandler, a.logger)
 	userController := userController.NewUserController(userService, a.logger)
-	stockHandler := stock.NewStockHandler(*a.logger, cacheService)
+	//PROMETHEUS
+	prometheusClient := metric.NewPrometheusClient(true)
+	metric := metric.NewMetric(prometheusClient.Registry())
+	//PROMETHEUS
+	stockHandler := stock.NewStockHandler(metric, *a.logger, cacheService)
 	a.server.Use(middleware.CORSMiddleware())
 	router := a.server.Group("/api")
 	authRouter := route.NewAuthRouter(authController, authMiddleware)
@@ -87,6 +92,10 @@ func (a *app) startHttp() {
 	a.server.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": "fail", "message": fmt.Sprintf("Route %s not found", ctx.Request.URL)})
 	})
+
+	//PROMETHEUS
+	router.GET("/metrics", gin.WrapH(prometheusClient.Handler()))
+	//PROMETHEUS
 
 	port := fmt.Sprintf(":%s", a.cfg.Port)
 	server := &http.Server{
