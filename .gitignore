@@ -1,5 +1,7 @@
 react-client/.vscode/*
 db_data/*
+grafana/*
+.server/*
 
 react-client/node_modules
 react-client/.pnp

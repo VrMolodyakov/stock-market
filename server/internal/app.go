@@ -79,7 +79,7 @@ func (a *app) startHttp() {
 	prometheusClient := metric.NewPrometheusClient(true)
 	metric := metric.NewMetric(prometheusClient.Registry())
 	//PROMETHEUS
-	stockHandler := stock.NewStockHandler(metric, *a.logger, cacheService)
+	stockHandler := stock.NewStockHandler(metric, a.logger, cacheService, http.DefaultClient)
 	a.server.Use(middleware.CORSMiddleware())
 	router := a.server.Group("/api")
 	authRouter := route.NewAuthRouter(authController, authMiddleware)

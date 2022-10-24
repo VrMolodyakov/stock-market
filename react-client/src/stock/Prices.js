@@ -5,6 +5,8 @@ import {useNavigate} from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./Prices.css"
 
+var currentPage = 0;
+
 function Table({ columns, data }) {
     const [filterInput, setFilterInput] = useState("");
     const navigate = useNavigate();
@@ -39,7 +41,8 @@ function Table({ columns, data }) {
         {
             columns,
             data,
-            initialState: { pageIndex: 0, pageSize: 5 },
+            initialState: { pageIndex: currentPage, pageSize: 5 },
+            autoResetPage: false,
         },
         useFilters,
         usePagination
@@ -77,16 +80,16 @@ function Table({ columns, data }) {
             {
             }
             <ul className="pagination">
-                <li className="page-item" onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+                <li className="page-item" onClick={() => {gotoPage(0); currentPage = 0} } disabled={!canPreviousPage}>
                     <a className="page-link">First</a>
                 </li>
-                <li className="page-item" onClick={() => previousPage()} disabled={!canPreviousPage}>
+                <li className="page-item" onClick={() => {previousPage(); currentPage-=1}} disabled={!canPreviousPage}>
                     <a className="page-link">{'<'}</a>
                 </li>
-                <li className="page-item" onClick={() => nextPage()} disabled={!canNextPage}>
+                <li className="page-item" onClick={() => {nextPage(); currentPage+=1}} disabled={!canNextPage}>
                     <a className="page-link">{'>'}</a>
                 </li>
-                <li className="page-item" onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+                <li className="page-item" onClick={() => {gotoPage(pageCount - 1); currentPage = pageCount-1}} disabled={!canNextPage}>
                     <a className="page-link">Last</a>
                 </li>
                 <li>
@@ -106,6 +109,7 @@ function Table({ columns, data }) {
                             onChange={e => {
                                 const page = e.target.value ? Number(e.target.value) - 1 : 0
                                 gotoPage(page)
+                                currentPage = page 
                             }}
                             style={{ width: '100px', height: '20px' }}
                         />

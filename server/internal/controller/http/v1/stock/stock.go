@@ -15,20 +15,26 @@ import (
 // gmt time
 
 const expireAt int = 60
+const closedTradeExpire int = 600
 
 type CacheService interface {
 	Save(symbol string, stockInfo string, duration time.Duration) error
 	Get(symbol string) (string, error)
 }
 
-type stockService struct {
-	metric       metric.Metric
-	logger       logging.Logger
-	cacheService CacheService
+type HttpClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
-func NewStockHandler(metric metric.Metric, logger logging.Logger, cache CacheService) *stockService {
-	return &stockService{metric: metric, logger: logger, cacheService: cache}
+type stockService struct {
+	metric       metric.Metric
+	logger       *logging.Logger
+	cacheService CacheService
+	http         HttpClient
+}
+
+func NewStockHandler(metric metric.Metric, logger *logging.Logger, cache CacheService, http HttpClient) *stockService {
+	return &stockService{metric: metric, logger: logger, cacheService: cache, http: http}
 }
 
 func (ss *stockService) GetStockInfo(ctx *gin.Context) {
@@ -42,7 +48,7 @@ func (ss *stockService) GetStockInfo(ctx *gin.Context) {
 		err = json.Unmarshal(b, &chart)
 		if err != nil {
 			ss.metric.HTTPResponseCounter.WithLabelValues(code, "500").Inc()
-			errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
+			errs.HTTPErrorResponse(ctx, ss.logger, errs.New(errs.Internal, err))
 			return
 		}
 		ctx.JSON(http.StatusOK, chart)
@@ -53,13 +59,13 @@ func (ss *stockService) GetStockInfo(ctx *gin.Context) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
 			ss.metric.HTTPResponseCounter.WithLabelValues(code, "500").Inc()
-			errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
+			errs.HTTPErrorResponse(ctx, ss.logger, errs.New(errs.Internal, err))
 			return
 		}
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := ss.http.Do(req)
 		if err != nil {
 			ss.metric.HTTPResponseCounter.WithLabelValues(code, "500").Inc()
-			errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
+			errs.HTTPErrorResponse(ctx, ss.logger, errs.New(errs.Internal, err))
 			return
 		}
 		defer resp.Body.Close()
@@ -68,7 +74,7 @@ func (ss *stockService) GetStockInfo(ctx *gin.Context) {
 
 		if err != nil {
 			ss.metric.HTTPResponseCounter.WithLabelValues(code, "500").Inc()
-			errs.HTTPErrorResponse(ctx, &ss.logger, errs.New(errs.Internal, err))
+			errs.HTTPErrorResponse(ctx, ss.logger, errs.New(errs.Internal, err))
 			return
 		}
 		ss.cache(chart, code)
@@ -83,7 +89,14 @@ func (ss *stockService) GetStockInfo(ctx *gin.Context) {
 func (ss *stockService) cache(chart ChartResponse, symbol string) {
 	ss.logger.Infof("try to save in cache symbol = %v", symbol)
 	stringPayload, _ := json.Marshal(chart)
-	err := ss.cacheService.Save(symbol, string(stringPayload), time.Duration(expireAt)*time.Second)
+	h := time.Now().UTC().Hour()
+	var err error
+	if h >= 9 || h <= 16 {
+		err = ss.cacheService.Save(symbol, string(stringPayload), time.Duration(expireAt)*time.Second)
+	} else {
+		err = ss.cacheService.Save(symbol, string(stringPayload), time.Duration(closedTradeExpire)*time.Second)
+	}
+
 	if err != nil {
 		ss.logger.Errorf("cannot save to cache due to : %v", err)
 	}
