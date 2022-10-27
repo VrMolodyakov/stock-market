@@ -14,6 +14,7 @@ import (
 	"github.com/VrMolodyakov/stock-market/pkg/metric"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSignInUser(t *testing.T) {
@@ -25,13 +26,16 @@ func TestSignInUser(t *testing.T) {
 	stockHandler := NewStockHandler(metric, logging.GetLogger("debug"), mockCacheService, mockHttpClient)
 	type mockCall func()
 	testCases := []struct {
-		title        string
-		inputRequest string
-		mockCall     mockCall
+		title              string
+		mockCall           mockCall
+		expectedCode       int
+		expectdSymbol      string
+		expectedMarketTime int
+		ExpectdMarketPrice float64
+		isError            bool
 	}{
 		{
-			title:        "sign up and 201 response",
-			inputRequest: `{}`,
+			title: "successful receipt of stock info and 200 response",
 			mockCall: func() {
 				chart := ChartResponse{
 					Chart: Chart{
@@ -55,18 +59,50 @@ func TestSignInUser(t *testing.T) {
 					Body: ioutil.NopCloser(bytes.NewBufferString(string(b))),
 				}
 				mockCacheService.EXPECT().Get(gomock.Any()).Return("", errors.New("cache is empty"))
+				mockCacheService.EXPECT().Save(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				mockHttpClient.EXPECT().Do(gomock.Any()).Return(response, nil)
 
 			},
+			expectedCode:       200,
+			expectdSymbol:      "TEST",
+			expectedMarketTime: 42,
+			ExpectdMarketPrice: 42.0,
+			isError:            false,
+		},
+
+		{
+			title: "couldn't complete the request and 500 response",
+			mockCall: func() {
+
+				mockCacheService.EXPECT().Get(gomock.Any()).Return("", errors.New("cache is empty"))
+				mockHttpClient.EXPECT().Do(gomock.Any()).Return(nil, errors.New("http client error"))
+
+			},
+			expectedCode: 500,
+			isError:      true,
 		},
 	}
 	for _, test := range testCases {
 		t.Run(test.title, func(t *testing.T) {
+			test.mockCall()
 			router := gin.Default()
 			router.GET("/api/stock/symbols/TEST", stockHandler.GetStockInfo)
 			req, _ := http.NewRequest("GET", "/api/stock/symbols/TEST", nil)
 			recorder := httptest.NewRecorder()
 			router.ServeHTTP(recorder, req)
+			if !test.isError {
+
+				var chart ChartResponse
+				err := json.NewDecoder(recorder.Body).Decode(&chart)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				assert.Equal(t, test.expectdSymbol, chart.Chart.Result[0].Meta.Symbol)
+				assert.Equal(t, test.expectedMarketTime, chart.Chart.Result[0].Meta.RegularMarketTime)
+				assert.Equal(t, test.ExpectdMarketPrice, chart.Chart.Result[0].Meta.RegularMarketPrice)
+			}
+			assert.Equal(t, test.expectedCode, recorder.Code)
 		})
 	}
 }
