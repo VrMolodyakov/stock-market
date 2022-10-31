@@ -69,7 +69,6 @@ func TestSignInUser(t *testing.T) {
 			ExpectdMarketPrice: 42.0,
 			isError:            false,
 		},
-
 		{
 			title: "couldn't complete the request and 500 response",
 			mockCall: func() {
@@ -80,6 +79,35 @@ func TestSignInUser(t *testing.T) {
 			},
 			expectedCode: 500,
 			isError:      true,
+		},
+		{
+			title: "information was found in the cache and 200 response",
+			mockCall: func() {
+				chart := ChartResponse{
+					Chart: Chart{
+						Result: []Result{
+							{
+								Meta: Meta{
+									Symbol:             "TEST",
+									RegularMarketTime:  42,
+									RegularMarketPrice: 42.0,
+								},
+							},
+						},
+						Error: nil,
+					},
+				}
+				b, err := json.Marshal(chart)
+				if err != nil {
+					t.Fatal(err)
+				}
+				mockCacheService.EXPECT().Get(gomock.Any()).Return(string(b), nil)
+			},
+			expectedCode:       200,
+			expectdSymbol:      "TEST",
+			expectedMarketTime: 42,
+			ExpectdMarketPrice: 42.0,
+			isError:            false,
 		},
 	}
 	for _, test := range testCases {

@@ -7,6 +7,11 @@ import axios from "axios";
 import jwt_decode from 'jwt-decode'
 import "./StockCode.css"
 
+function padTo2Digits(num) {
+  return String(num).padStart(2, '0');
+}
+
+
 const Code = (props) => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -108,7 +113,7 @@ const Code = (props) => {
       const stockInfo = data.chart.result[0];
       console.log(stockInfo);
       setPrice(stockInfo.meta.regularMarketPrice.toFixed(2));
-      setPriceTime(new Date(stockInfo.meta.regularMarketTime * 1000));
+      setPriceTime(new Intl.DateTimeFormat('ru', {year: 'numeric', month: '2-digit',day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',timeZone: 'GMT'}).format(stockInfo.meta.regularMarketTime * 1000));
       setSymbol(stockInfo.meta.symbol);
       const quote = stockInfo.indicators.quote[0];
       const prices = stockInfo.timestamp.map((timestamp, index) => ({
@@ -136,7 +141,7 @@ const Code = (props) => {
         <h1 className="title">Last stock price</h1>
         <h1 className="price">${price} {directionEmojis['up']}</h1>
         <h2 className="symbol">{symbol}</h2>
-        <h3 className="time">{priceTime && priceTime.toLocaleTimeString()}</h3>
+        <h3 className="time">{priceTime}</h3>
       </div>
       <Chart options={chart.options} series={priceInfo} type="candlestick" width="100%" height={350} />
     </div>
