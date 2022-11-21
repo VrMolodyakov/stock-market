@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	v1 "github.com/VrMolodyakov/stock-market/internal/controller/http/v1/auth"
 	"github.com/VrMolodyakov/stock-market/internal/controller/http/v1/middleware/mocks"
 	"github.com/VrMolodyakov/stock-market/internal/domain/entity"
 	"github.com/VrMolodyakov/stock-market/pkg/logging"
@@ -15,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test(t *testing.T) {
+func TestAuthMiddleware(t *testing.T) {
 	cntr := gomock.NewController(t)
 	tokenHandler := mocks.NewMockTokenHandler(cntr)
 	tokenService := mocks.NewMockTokenService(cntr)
@@ -41,7 +40,7 @@ func Test(t *testing.T) {
 				userService.EXPECT().GetById(gomock.Any(), gomock.Any()).Return(user, nil)
 			},
 			handler: func(ctx *gin.Context) {
-				user := ctx.MustGet("user").(v1.User)
+				user := ctx.MustGet("user").(entity.User)
 				assert.Equal(t, "some-username", user.Username)
 				ctx.JSON(http.StatusOK, "success")
 			},

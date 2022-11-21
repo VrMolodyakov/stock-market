@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// gmt time
+const stockUrl string = "https://query1.finance.yahoo.com/v8/finance/chart/%v"
 
 const expireAt int = 60
 const closedTradeExpire int = 600
@@ -54,7 +54,7 @@ func (ss *stockService) GetStockInfo(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, chart)
 
 	} else {
-		url := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%v", code)
+		url := fmt.Sprintf(stockUrl, code)
 		ss.logger.Info(url)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {

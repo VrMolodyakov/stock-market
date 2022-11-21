@@ -25,7 +25,7 @@ func TestSignUpUser(t *testing.T) {
 	mockTokenService := mocks.NewMockTokenService(cntr)
 	now := time.Now()
 	inputTime := now.Format(time.RFC3339)
-	authController := NewAuthController(mockUserService, logging.GetLogger("debug"), mockTokenHandler, mockTokenService, 15, 15)
+	authHandler := NewAuthHandler(mockUserService, logging.GetLogger("debug"), mockTokenHandler, mockTokenService, "localhost", 15, 15)
 	type mockCall func()
 	testCases := []struct {
 		title        string
@@ -75,7 +75,7 @@ func TestSignUpUser(t *testing.T) {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
 			router := gin.Default()
-			router.POST("/register", authController.SignUpUser)
+			router.POST("/register", authHandler.SignUpUser)
 			req, _ := http.NewRequest("POST", "/register", bytes.NewBufferString(test.inputRequest))
 			recorder := httptest.NewRecorder()
 			router.ServeHTTP(recorder, req)
@@ -90,7 +90,7 @@ func TestSignInUser(t *testing.T) {
 	mockUserService := mocks.NewMockUserService(cntr)
 	mockTokenHandler := mocks.NewMockTokenHandler(cntr)
 	mockTokenService := mocks.NewMockTokenService(cntr)
-	authController := NewAuthController(mockUserService, logging.GetLogger("debug"), mockTokenHandler, mockTokenService, 15, 15)
+	authHandler := NewAuthHandler(mockUserService, logging.GetLogger("debug"), mockTokenHandler, mockTokenService, "localhost", 15, 15)
 	type mockCall func(accessToken string, refreshToken string)
 	testCases := []struct {
 		title        string
@@ -175,7 +175,7 @@ func TestSignInUser(t *testing.T) {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock(test.tokens[0], test.tokens[1])
 			router := gin.Default()
-			router.POST("/login", authController.SignInUser)
+			router.POST("/login", authHandler.SignInUser)
 			req, _ := http.NewRequest("POST", "/login", bytes.NewBufferString(test.inputRequest))
 			recorder := httptest.NewRecorder()
 			router.ServeHTTP(recorder, req)
@@ -201,7 +201,7 @@ func TestRefreshAccessToken(t *testing.T) {
 	mockUserService := mocks.NewMockUserService(cntr)
 	mockTokenHandler := mocks.NewMockTokenHandler(cntr)
 	mockTokenService := mocks.NewMockTokenService(cntr)
-	authController := NewAuthController(mockUserService, logging.GetLogger("debug"), mockTokenHandler, mockTokenService, 15, 15)
+	authHandler := NewAuthHandler(mockUserService, logging.GetLogger("debug"), mockTokenHandler, mockTokenService, "localhost", 15, 15)
 	type mockCall func(recorder *httptest.ResponseRecorder, userId int, accessToken string)
 	type args struct {
 		acessToken string
@@ -287,7 +287,7 @@ func TestRefreshAccessToken(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.title, func(t *testing.T) {
 			router := gin.Default()
-			router.GET("/refresh", authController.RefreshAccessToken)
+			router.GET("/refresh", authHandler.RefreshAccessToken)
 			req, _ := http.NewRequest("GET", "/refresh", nil)
 			recorder := httptest.NewRecorder()
 			test.mock(recorder, test.args.userId, test.args.acessToken)
@@ -315,7 +315,7 @@ func TestLogout(t *testing.T) {
 	mockUserService := mocks.NewMockUserService(cntr)
 	mockTokenHandler := mocks.NewMockTokenHandler(cntr)
 	mockTokenService := mocks.NewMockTokenService(cntr)
-	authController := NewAuthController(mockUserService, logging.GetLogger("debug"), mockTokenHandler, mockTokenService, 15, 15)
+	authHandler := NewAuthHandler(mockUserService, logging.GetLogger("debug"), mockTokenHandler, mockTokenService, "localhost", 15, 15)
 	type mockCall func() *http.Request
 	testCases := []struct {
 		title          string
@@ -377,7 +377,7 @@ func TestLogout(t *testing.T) {
 		t.Run(test.title, func(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			router := gin.Default()
-			router.GET("/logout", authController.Logout)
+			router.GET("/logout", authHandler.Logout)
 			req := test.mock()
 			router.ServeHTTP(recorder, req)
 			if !test.isError {

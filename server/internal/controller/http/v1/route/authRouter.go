@@ -2,7 +2,7 @@ package route
 
 import "github.com/gin-gonic/gin"
 
-type AuthController interface {
+type AuthHandler interface {
 	SignUpUser(ctx *gin.Context)
 	SignInUser(ctx *gin.Context)
 	RefreshAccessToken(ctx *gin.Context)
@@ -10,11 +10,11 @@ type AuthController interface {
 }
 
 type authRouter struct {
-	authHandler    AuthController
+	authHandler    AuthHandler
 	authMiddleware AuthMiddleware
 }
 
-func NewAuthRouter(authHandler AuthController, authMiddleware AuthMiddleware) *authRouter {
+func NewAuthRouter(authHandler AuthHandler, authMiddleware AuthMiddleware) *authRouter {
 	return &authRouter{authHandler: authHandler, authMiddleware: authMiddleware}
 }
 

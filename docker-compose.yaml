@@ -43,6 +43,12 @@ services:
         volumes:
           - ./grafana/provisioning:/etc/grafana/provisioning
           - ./grafana/dashboards:/var/lib/grafana/dashboards
+    web-client:
+        build:
+          context: ./react-client
+          dockerfile: Dockerfile
+        ports:
+          - "3001:3001"
     app:
         build: 
           context: ./server

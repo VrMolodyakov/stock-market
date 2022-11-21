@@ -13,6 +13,7 @@ func main() {
 	fmt.Println("init app")
 
 	cfg := config.GetConfig()
+	fmt.Println(cfg.Host)
 	logger := logging.GetLogger("debug")
 	app := internal.NewApp(logger, cfg, gin.Default())
 	app.Run()

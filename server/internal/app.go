@@ -18,7 +18,6 @@ import (
 	"github.com/VrMolodyakov/stock-market/internal/controller/http/v1/middleware"
 	"github.com/VrMolodyakov/stock-market/internal/controller/http/v1/route"
 	"github.com/VrMolodyakov/stock-market/internal/controller/http/v1/stock"
-	userController "github.com/VrMolodyakov/stock-market/internal/controller/http/v1/user"
 	"github.com/VrMolodyakov/stock-market/internal/domain/service"
 	"github.com/VrMolodyakov/stock-market/pkg/client/postgresql"
 	"github.com/VrMolodyakov/stock-market/pkg/client/redis"
@@ -41,7 +40,7 @@ type app struct {
 }
 
 func NewApp(logger *logging.Logger, cfg *config.Config, server *gin.Engine) *app {
-	return &app{cfg: cfg, logger: logger, server: server}
+	return &app{cfg: cfg, logger: logger, server: gin.Default()}
 }
 
 func (a *app) Run() {
@@ -72,30 +71,24 @@ func (a *app) startHttp() {
 	tokenService := service.NewTokenService(tokenStorage, a.logger)
 	userService := service.NewUserService(a.logger, storage)
 	cacheService := service.NewCacheService(a.logger, stockStorage)
-	authController := v1.NewAuthController(userService, a.logger, tokenHandler, tokenService, a.cfg.Token.AccessTtl, a.cfg.Token.RefreshTtl)
+	authHandler := v1.NewAuthHandler(userService, a.logger, tokenHandler, tokenService, a.cfg.Host, a.cfg.Token.AccessTtl, a.cfg.Token.RefreshTtl)
 	authMiddleware := middleware.NewAuthMiddleware(userService, tokenService, tokenHandler, a.logger)
-	userController := userController.NewUserController(userService, a.logger)
-	//PROMETHEUS
 	prometheusClient := metric.NewPrometheusClient(true)
 	metric := metric.NewMetric(prometheusClient.Registry())
-	//PROMETHEUS
 	stockHandler := stock.NewStockHandler(metric, a.logger, cacheService, http.DefaultClient)
 	a.server.Use(middleware.CORSMiddleware())
 	router := a.server.Group("/api")
-	authRouter := route.NewAuthRouter(authController, authMiddleware)
-	userRouter := route.NewUserRouter(userController, authMiddleware)
+	authRouter := route.NewAuthRouter(authHandler, authMiddleware)
 	stockRouter := route.NewStockRouter(stockHandler, authMiddleware)
+	metricRouter := route.NewPrometheusRouter(prometheusClient)
+
+	metricRouter.MetricRoute(router)
 	authRouter.AuthRoute(router)
-	userRouter.UserRoute(router)
 	stockRouter.StockRoute(router)
 
 	a.server.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": "fail", "message": fmt.Sprintf("Route %s not found", ctx.Request.URL)})
 	})
-
-	//PROMETHEUS
-	router.GET("/metrics", gin.WrapH(prometheusClient.Handler()))
-	//PROMETHEUS
 
 	port := fmt.Sprintf(":%s", a.cfg.Port)
 	server := &http.Server{

@@ -141,7 +141,7 @@ const Code = (props) => {
         <h1 className="title">Last stock price</h1>
         <h1 className="price">${price} {directionEmojis['up']}</h1>
         <h2 className="symbol">{symbol}</h2>
-        <h3 className="time">{priceTime}</h3>
+        <h3 className="time">{priceTime} (UTC)</h3>
       </div>
       <Chart options={chart.options} series={priceInfo} type="candlestick" width="100%" height={350} />
     </div>

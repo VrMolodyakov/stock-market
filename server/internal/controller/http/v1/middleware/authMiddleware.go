@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	v1 "github.com/VrMolodyakov/stock-market/internal/controller/http/v1/auth"
 	"github.com/VrMolodyakov/stock-market/internal/domain/entity"
 	"github.com/VrMolodyakov/stock-market/internal/errs"
 	"github.com/VrMolodyakov/stock-market/pkg/logging"
@@ -64,8 +63,8 @@ func (a *authMiddleware) Auth() gin.HandlerFunc {
 			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Parameter("user id not found")))
 			return
 		}
-		a.logger.Infof("SET CURRENT USER %v", user)
-		ctx.Set("user", v1.User{Username: user.Username, CreateAt: user.CreateAt})
+		a.logger.Debugf("set current context user %v = ", user)
+		ctx.Set("user", user)
 		ctx.Next()
 	}
 

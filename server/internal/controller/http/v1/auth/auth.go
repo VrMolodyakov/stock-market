@@ -15,15 +15,17 @@ type authHandler struct {
 	userService  UserService
 	tokenHandler TokenHandler
 	tokenService TokenService
+	host         string
 	accessTtl    int
 	refreshTtl   int
 }
 
-func NewAuthController(
+func NewAuthHandler(
 	userService UserService,
 	logger *logging.Logger,
 	tokenHandler TokenHandler,
 	tokenService TokenService,
+	host string,
 	accessTtl int,
 	refreshTtl int) *authHandler {
 	return &authHandler{
@@ -31,6 +33,7 @@ func NewAuthController(
 		logger:       logger,
 		tokenHandler: tokenHandler,
 		tokenService: tokenService,
+		host:         host,
 		accessTtl:    accessTtl,
 		refreshTtl:   refreshTtl}
 }
@@ -96,9 +99,9 @@ func (a *authHandler) SignInUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("access_token", accessToken, a.accessTtl*60, "/", "localhost", false, true)
-	ctx.SetCookie("refresh_token", refreshToken, a.refreshTtl*60, "/", "localhost", false, true)
-	ctx.SetCookie("logged_in", "true", a.accessTtl*60, "/", "localhost", false, false)
+	ctx.SetCookie("access_token", accessToken, a.accessTtl*60, "/", a.host, false, true)
+	ctx.SetCookie("refresh_token", refreshToken, a.refreshTtl*60, "/", a.host, false, true)
+	ctx.SetCookie("logged_in", "true", a.accessTtl*60, "/", a.host, false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": accessToken})
 }
@@ -125,8 +128,8 @@ func (a *authHandler) RefreshAccessToken(ctx *gin.Context) {
 		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Internal, err))
 		return
 	}
-	ctx.SetCookie("access_token", accessToken, a.accessTtl*60, "/", "localhost", false, true)
-	ctx.SetCookie("logged_in", "true", a.accessTtl*60, "/", "localhost", false, false)
+	ctx.SetCookie("access_token", accessToken, a.accessTtl*60, "/", a.host, false, true)
+	ctx.SetCookie("logged_in", "true", a.accessTtl*60, "/", a.host, false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": accessToken})
 }
@@ -147,9 +150,9 @@ func (a *authHandler) Logout(ctx *gin.Context) {
 		errs.HTTPErrorResponse(ctx, a.logger, err)
 		return
 	}
-	ctx.SetCookie("access_token", "", -1, "/", "localhost", false, true)
-	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
-	ctx.SetCookie("logged_in", "", -1, "/", "localhost", false, true)
+	ctx.SetCookie("access_token", "", -1, "/", a.host, false, true)
+	ctx.SetCookie("refresh_token", "", -1, "/", a.host, false, true)
+	ctx.SetCookie("logged_in", "", -1, "/", a.host, false, true)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 
