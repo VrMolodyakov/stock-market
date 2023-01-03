@@ -39,7 +39,7 @@ func (u *userStorage) Insert(ctx context.Context, username string, password stri
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.New(
 				errs.Validation,
-				errs.Code("user name already exists"),
+				errs.Code("user already exists"),
 				errs.Parameter("username"),
 				err)
 		}

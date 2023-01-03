@@ -48,7 +48,7 @@ func badRequesteResponse(c *gin.Context, logger *logging.Logger, err *Error) {
 
 func validationRequesteResponse(c *gin.Context, logger *logging.Logger, err *Error) {
 	logger.Errorf("http status code %v\n error = %v", http.StatusUnauthorized, err)
-	c.JSON(http.StatusBadRequest, err.Param)
+	c.JSON(http.StatusBadRequest, err.Code)
 }
 
 func unauthorizedErrorResponse(c *gin.Context, logger *logging.Logger, err *Error) {

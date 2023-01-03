@@ -49,7 +49,7 @@ func (a *authMiddleware) Auth() gin.HandlerFunc {
 			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Unauthorized, err))
 			return
 		}
-		a.logger.Info("access token:", accessToken)
+		a.logger.Debug("access token:", accessToken)
 		sub, err := a.tokenHandler.ValidateAccessToken(accessToken)
 		if err != nil {
 			ctx.Abort()

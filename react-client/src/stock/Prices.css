@@ -65,12 +65,10 @@
    padding-left:2%;  
  }
  
- /* Background-color of the odd rows */
  .container tr:nth-child(odd) {
        background-color: #323C50;
  }
  
- /* Background-color of the even rows */
  .container tr:nth-child(even) {
        background-color: #2C3446;
  }
@@ -81,19 +79,14 @@
  
  .container td:first-child { color: #42d562; }
  
- .container tr:hover {
-    background-color: #464A52;
- -webkit-box-shadow: 0 6px 6px -6px #0E1119;
-        -moz-box-shadow: 0 6px 6px -6px #0E1119;
-             box-shadow: 0 6px 6px -6px #0E1119;
- }
+
  
  .container td:hover {
-   background-color: #FFF842;
-   color: #403E10;
+   background-color: #22275db7;
+   color: #ffffff;
    font-weight: bold;
    
-   box-shadow: #7F7C21 -1px 1px, #7F7C21 -2px 2px, #7F7C21 -3px 3px, #7F7C21 -4px 4px, #7F7C21 -5px 5px, #7F7C21 -6px 6px;
+   box-shadow: #1a303d -1px 1px, #1a303d -2px 2px, #1a303d -3px 3px, #1a303d -4px 4px, #1a303d -5px 5px, #1a303d -6px 6px;
    transform: translate3d(6px, -6px, 0);
    
    transition-delay: 0s;
@@ -121,7 +114,7 @@
 }
 
 .page-link:hover{
-    color: #fceb00;
+    color: #ffffff;
     background-color: #8c9bf0;
     border-color: #044461;
     border-left-color: #3c4491;
