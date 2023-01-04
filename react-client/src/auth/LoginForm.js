@@ -14,6 +14,7 @@ const Login = () =>{
   const [fieldError,setFieldError] = useState("");
   const navigate = useNavigate();
   const {auth,setAuth} = useAuth();
+  const [isRegister,setIsRegister] = useState(false);
   const location = useLocation();
   const [login,setLogin] = useState("");
   const onChangeLogin = (e) => {
@@ -52,13 +53,16 @@ const Login = () =>{
   useEffect(() => {
     if (auth.token) {
       localStorage.setItem("access_token", auth.token); 
-      navigate("/home");
+      navigate("/price");
     }
   }, [auth]);
 
   useEffect(() => {
-    if (location.state){
-      console.log(location.state.previousUrl)
+    if (location.state?.previousUrl === "/reg"){
+      console.log(location)
+      console.log("inside")
+      setIsRegister(true)
+      console.log(isRegister)
     }
   }, []);
 
@@ -86,7 +90,7 @@ const Login = () =>{
         <div className="Auth-form-content">
           <h3 className="Auth-form-title">Sign In</h3>
           <div className="form-group mt-3">
-                {location.state && (
+                {isRegister && (
                           <div className="alert alert-success" role="alert">
                           {"you have been successfully registered"}
                           </div>

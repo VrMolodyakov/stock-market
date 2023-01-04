@@ -34,8 +34,8 @@ function App() {
   return (
     <>
     <Navbar collapseOnSelect expand="lg" bg="blue" variant="white">
-    <Navbar.Brand className = "Home"  href="/home">Home</Navbar.Brand>
-      
+    <Navbar.Brand className = "Home"  href="/">Home</Navbar.Brand>
+    <Navbar.Brand className = "Charts"  href="/price">Charts</Navbar.Brand> 
      
       <Navbar.Toggle aria-controls="responsive-navbar-nav" />
       <Navbar.Collapse id="responsive-navbar-nav">
@@ -59,7 +59,7 @@ function App() {
             <Route path="reg" element={<Register />} />
             <Route element = {<RequierAuth/>}>
                 <Route path="/:slug" element={<Code/>} />
-                <Route path="home" element={<Prices />} />              
+                <Route path="price" element={<Prices />} />              
             </Route>
           </Route>
       </Routes>
