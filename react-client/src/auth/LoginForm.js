@@ -43,7 +43,6 @@ const Login = () =>{
     .catch(error => {   
       if (error.response.status === 400){
         setFieldError(errors.credentials)
-        console.log("field = " + fieldError)
       }else{
         setFieldError(errors.internal)
       }
@@ -59,10 +58,7 @@ const Login = () =>{
 
   useEffect(() => {
     if (location.state?.previousUrl === "/reg"){
-      console.log(location)
-      console.log("inside")
       setIsRegister(true)
-      console.log(isRegister)
     }
   }, []);
 
