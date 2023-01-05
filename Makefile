@@ -1,5 +1,6 @@
 test:
-	go test ./... -cover
+	cd server && go test ./... -cover 
+
 start:
 	docker-compose up -d
 
