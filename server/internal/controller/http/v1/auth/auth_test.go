@@ -49,7 +49,7 @@ func TestSignUpUser(t *testing.T) {
 			mock: func() {
 			},
 			inputRequest: `wrong data`,
-			want:         "\"Username or password\"",
+			want:         "\"incorrect data format\"",
 			expectedCode: 400,
 		},
 		{
@@ -119,7 +119,7 @@ func TestSignInUser(t *testing.T) {
 		{
 			title: "user not found",
 			mock: func(accessToken string, refreshToken string) {
-				mockUserService.EXPECT().Get(gomock.Any(), gomock.Any()).Return(entity.User{}, errs.New(errs.Validation, errs.Parameter("username")))
+				mockUserService.EXPECT().Get(gomock.Any(), gomock.Any()).Return(entity.User{}, errs.New(errs.Validation, errs.Code("username")))
 			},
 			inputRequest: `{"username":"username","password":"my_password"}`,
 			expectedCode: 400,

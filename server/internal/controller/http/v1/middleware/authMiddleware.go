@@ -60,7 +60,7 @@ func (a *authMiddleware) Auth() gin.HandlerFunc {
 		user, err := a.userService.GetById(ctx, int(userId))
 		if err != nil {
 			ctx.Abort()
-			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Parameter("user id not found")))
+			errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Code("user id not found")))
 			return
 		}
 		a.logger.Debugf("set current context user %v = ", user)

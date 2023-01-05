@@ -43,7 +43,7 @@ func (a *authHandler) SignUpUser(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
-		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Parameter("incorrect data format")))
+		errs.HTTPErrorResponse(ctx, a.logger, errs.New(errs.Validation, errs.Code("incorrect data format")))
 		return
 	}
 	hashedPassword, err := hashing.HashPassword(request.Password)
