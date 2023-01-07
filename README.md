@@ -1,4 +1,6 @@
 # Stock service
+[![Build and Test](https://github.com/VrMolodyakov/stock-market/actions/workflows/go.yaml/badge.svg)](https://github.com/VrMolodyakov/stock-market/actions/workflows/go.yaml)
+
 ![image](https://user-images.githubusercontent.com/99216816/211168525-c1df49d6-2350-42c7-bd5f-7a214293d047.png)
 
 
